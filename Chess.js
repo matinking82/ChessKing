@@ -1,4 +1,5 @@
 let mainHeight;
+let mainWidth;
 let BoardWidth;
 let SquareWidth;
 let Squares = [0]
@@ -13,7 +14,12 @@ let EnPassantSquare = null;
 
 $(document).ready(async function () {
     mainHeight = $(document).innerHeight();
-    BoardWidth = mainHeight * 0.9;
+    mainWidth = $(document).innerWidth();
+    if (mainHeight > mainWidth) {
+        BoardWidth = mainWidth * 0.9;
+    } else {
+        BoardWidth = mainHeight * 0.9;
+    }
     SquareWidth = BoardWidth / 8;
 
     $(".ChessBoard").css({
