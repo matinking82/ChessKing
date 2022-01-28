@@ -1,0 +1,56 @@
+body {
+    background-color: dimgray;
+}
+
+.ChessBoard {
+    display: block;
+    margin: auto;
+    position: relative;
+    transform: rotate(0deg);
+    transition: transform 1s;
+}
+
+.ChessSquare {
+    position: absolute;
+    display: inline-block;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+.ChessSquareFull:hover {
+    cursor: pointer;
+}
+
+.ChessSquare img {
+    display: block;
+    height: 80%;
+    margin: 10% auto;
+    transform: rotate(0deg);
+    transition: transform 1s;
+}
+
+.SquareColor2 {
+    background-color: #155f4e
+}
+
+.SquareColor1 {
+    background-color: #f7e5a3
+}
+
+.SquareSelected {
+    background-color: aquamarine !important;
+}
+
+.FlipBoard, .FlipBoard img {
+    transform: rotate(180deg);
+}
+
+.AllowedSquare1 {
+    background-color: #fb9552 !important;
+    cursor:pointer;
+}
+.AllowedSquare2 {
+    background-color: #8a5227 !important;
+    cursor:pointer;
+}
