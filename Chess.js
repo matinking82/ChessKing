@@ -299,7 +299,30 @@ async function MovePiece(startSquare, endSquare) {
 }
 
 async function Check(White = true) {
+    debugger;
     alert("Check!!");
+    if (!(await HasMoves(White))) {
+        await Mate(White);
+    }
+}
+
+async function HasMoves(White = true) {
+    let Pieces = await GetPieces(White);
+
+    for (var i = 0; i < Pieces.length; i++) {
+        let piece = Pieces[i];
+        let AllowedSquares = await GetAllowedSquares(piece);
+
+        if (AllowedSquares.length !== 0) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+async function Mate(White = true) {
+    alert('Mate!!!');
 }
 
 async function FlipBoard() {
@@ -326,50 +349,51 @@ async function ChangeTurn() {
 async function GetAllowedSquares(square) {
     let piece = parseInt($(square).attr('piece'));
 
+    let returnSquares = [];
+
     switch (piece) {
         case 1://pawn
-            return await PawnAllowedSquares(square);
+            returnSquares = await PawnAllowedSquares(square);
             break;
         case 2://knight
-            return await KnightAllowedSquares(square);
+            returnSquares = await KnightAllowedSquares(square);
             break;
         case 3://bishap
-            return await BishopAllowedSquares(square);
+            returnSquares = await BishopAllowedSquares(square);
             break;
         case 4://rook
-            return await RookAllowedSquares(square);
+            returnSquares = await RookAllowedSquares(square);
             break;
         case 5://king
-            return await KingAllowedSquares(square);
+            returnSquares = await KingAllowedSquares(square);
             break;
         case 6://queen
-            return await QueenAllowedSquares(square);
+            returnSquares = await QueenAllowedSquares(square);
             break;
         case 7://pawn
-            return await PawnAllowedSquares(square);
+            returnSquares = await PawnAllowedSquares(square);
             break;
         case 8://knight
-            return await KnightAllowedSquares(square);
+            returnSquares = await KnightAllowedSquares(square);
             break;
         case 9://bishap
-            return await BishopAllowedSquares(square);
+            returnSquares = await BishopAllowedSquares(square);
             break;
         case 10://rook
-            return await RookAllowedSquares(square);
+            returnSquares = await RookAllowedSquares(square);
             break;
         case 11://king
-            return await KingAllowedSquares(square);
+            returnSquares = await KingAllowedSquares(square);
             break;
         case 12://queen
-            return await QueenAllowedSquares(square);
+            returnSquares = await QueenAllowedSquares(square);
             break;
-
-
-        default:
     }
 
 
-    return Squares[5];
+    returnSquares = CheckPinAndReturn(square, returnSquares);
+
+    return returnSquares;
 }
 
 async function PawnAllowedSquares(square) {
@@ -831,4 +855,53 @@ async function IsCheck(White = true) {
         }
     }
     return false;
+}
+
+async function CheckPinAndReturn(square, allowedSquares) {
+    let returnSquares = [];
+    let pieceId = await GetPieceId(square);
+
+    let isWhite = IsWhite(square);
+
+    $(square)
+        .removeAttr("piece")
+        .removeClass('ChessSquareFull');
+
+    for (var i = 0; i < allowedSquares.length; i++) {
+
+
+        let sqr = allowedSquares[i];
+
+        let isCheck;
+
+        if (HasPiece(sqr)) {
+
+            let sqrPieceId = GetPieceId(sqr);
+            $(sqr)
+                .attr('piece', pieceId);
+            isCheck = await IsCheck(isWhite);
+            $(sqr)
+                .attr("piece", sqrPieceId);
+
+        } else {
+
+            $(sqr).attr('piece', pieceId)
+                .addClass('ChessSquareFull');
+
+            isCheck = await IsCheck(isWhite);
+            $(sqr)
+                .removeAttr("piece")
+                .removeClass('ChessSquareFull');
+        }
+
+        if (isCheck) {
+            continue;
+        }
+        returnSquares.push(sqr);
+    }
+
+    $(square).attr('piece', pieceId)
+        .addClass('ChessSquareFull');
+
+    return returnSquares;
 }
