@@ -303,6 +303,8 @@ async function MovePiece(startSquare, endSquare) {
     let isCheck = await IsCheck(WhitesTurn);
     if (isCheck) {
         Check(WhitesTurn);
+    } else {
+        //await PlayAudio('SFX/MovePiece.wav');
     }
 
     await ShowLastMove(startSquare, endSquare);
@@ -310,10 +312,10 @@ async function MovePiece(startSquare, endSquare) {
 }
 
 async function Check(White = true) {
-    debugger;
-    alert("Check!!");
     if (!(await HasMoves(White))) {
         await Mate(White);
+    } else {
+        await PlayAudio('SFX/Check.wav');
     }
 }
 
@@ -333,7 +335,9 @@ async function HasMoves(White = true) {
 }
 
 async function Mate(White = true) {
-    alert('Mate!!!');
+
+    await PlayAudio('SFX/Mate.wav');
+
     await AddScore(!White)
 }
 
@@ -974,4 +978,9 @@ async function ShowLastMove(startSquare, endSquare) {
 
     $(LastMoveEndSquare).addClass('LastMoveSquare');
     $(LastMoveStartSquare).addClass('LastMoveSquare');
+}
+
+async function PlayAudio(addres) {
+    let myAudio = new Audio(addres);
+    myAudio.play();
 }
