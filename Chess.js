@@ -83,6 +83,7 @@ async function SetPieces() {
 }
 
 async function CreateBoard() {
+    await ClearBoard();
     let Color1 = false;
     for (let f = 1; f <= 8; f++) {
         let file = [0];
@@ -927,6 +928,11 @@ async function CheckPinAndReturn(square, allowedSquares) {
         .addClass('ChessSquareFull');
 
     return returnSquares;
+}
+
+async function ClearBoard() {
+    $(".ChessBoard").text('');
+    Squares = [0];
 }
 
 async function RestartGame() {
