@@ -141,8 +141,20 @@ async function UnSelectSquare(square) {
     $(square).removeClass('SquareSelected');
     AllowedSquares = [];
 
+    RemoveHighLightedSquares();
+}
+
+async function RemoveHighLightedSquares() {
     $('.AllowedSquare1').removeClass('AllowedSquare1');
     $('.AllowedSquare2').removeClass('AllowedSquare2');
+}
+
+async function HighLightSquare(square) {
+    if ($(square).hasClass('SquareColor1')) {
+        $(square).addClass('AllowedSquare1');
+    } else {
+        $(square).addClass('AllowedSquare2');
+    }
 }
 
 async function SelectSquare(square) {
@@ -155,11 +167,8 @@ async function SelectSquare(square) {
         if (IsFriend(square, item)) {
             continue;
         }
-        if ($(item).hasClass('SquareColor1')) {
-            $(item).addClass('AllowedSquare1');
-        } else {
-            $(item).addClass('AllowedSquare2');
-        }
+
+        HighLightSquare(item);
     }
 }
 
