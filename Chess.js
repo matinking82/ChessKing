@@ -288,7 +288,18 @@ async function MovePiece(startSquare, endSquare) {
     await EmptySquare(startSquare);
     await ChangeSquareImage(endSquare, piece);
     await ChangeTurn()
+    debugger;
+    let isCheck = await IsCheck(WhitesTurn);
+    if (isCheck) {
+        Check(WhitesTurn);
+    }
+
+
     return true;
+}
+
+async function Check(White = true) {
+    alert("Check!!");
 }
 
 async function FlipBoard() {
@@ -313,7 +324,6 @@ async function ChangeTurn() {
 }
 
 async function GetAllowedSquares(square) {
-    debugger;
     let piece = parseInt($(square).attr('piece'));
 
     switch (piece) {
@@ -405,7 +415,30 @@ async function PawnAllowedSquares(square) {
     return allowedList;
 }
 
-async function KnightAllowedSquares(square) {
+async function GetPawnAtackedSquares(square) {
+    let AtackedSquareList = [];
+    let file = parseInt($(square).attr('file'));
+    let number = parseInt($(square).attr('number'));
+    let unit = 1;
+    if (!IsWhite(square)) {
+        unit = -1;
+    }
+
+    for (var i = file - 1; i <= file + 1; i++) {
+        if (i < 1 || i > 8) {
+            continue;
+        }
+        let sqr = Squares[i][number + unit];
+        if (i == file) {
+            continue;
+        } else {
+            AtackedSquareList.push(sqr);
+        }
+    }
+    return AtackedSquareList;
+}
+
+async function KnightAllowedSquares(square, atack = false) {
     let allowedList = [];
     let file = parseInt($(square).attr('file'));
     let number = parseInt($(square).attr('number'));
@@ -426,7 +459,9 @@ async function KnightAllowedSquares(square) {
                 let sqr = Squares[i][j];
                 if (HasPiece(sqr)) {
                     if (IsFriend(sqr, square)) {
-                        continue;
+                        if (!atack) {
+                            continue;
+                        }
                     }
                 }
                 allowedList.push(sqr);
@@ -437,13 +472,13 @@ async function KnightAllowedSquares(square) {
     return allowedList;
 }
 
-async function BishopAllowedSquares(square) {
+async function BishopAllowedSquares(square, atack = false) {
     let allowedList = [];
     let temp = [];
-    temp.push(await GetDiagonalAllowed(1, 1, square));
-    temp.push(await GetDiagonalAllowed(-1, 1, square));
-    temp.push(await GetDiagonalAllowed(1, -1, square));
-    temp.push(await GetDiagonalAllowed(-1, -1, square));
+    temp.push(await GetDiagonalAllowed(1, 1, square, atack));
+    temp.push(await GetDiagonalAllowed(-1, 1, square, atack));
+    temp.push(await GetDiagonalAllowed(1, -1, square, atack));
+    temp.push(await GetDiagonalAllowed(-1, -1, square, atack));
 
     for (var i = 0; i < temp.length; i++) {
         let list = temp[i];
@@ -457,7 +492,7 @@ async function BishopAllowedSquares(square) {
     return allowedList;
 }
 
-async function GetDiagonalAllowed(unit1, unit2, square) {
+async function GetDiagonalAllowed(unit1, unit2, square, atack = false) {
     let allowedList = [];
     let file = parseInt($(square).attr('file'));
     let number = parseInt($(square).attr('number'));
@@ -473,9 +508,18 @@ async function GetDiagonalAllowed(unit1, unit2, square) {
 
         if (HasPiece(sqr)) {
             if (!IsFriend(sqr, square)) {
-                allowedList.push(sqr)
+                allowedList.push(sqr);
+            } else if (atack) {
+                allowedList.push(sqr);
             }
-            break;
+            if (atack) {
+                let pieceId = GetPieceId(sqr);
+                if (!((pieceId === 5 && !IsWhite(square)) || (pieceId === 11 && IsWhite(square)))) {
+                    break;
+                }
+            } else {
+                break;
+            }
         }
         allowedList.push(sqr)
     }
@@ -483,7 +527,7 @@ async function GetDiagonalAllowed(unit1, unit2, square) {
     return allowedList;
 }
 
-async function GetVerticalAllowed(square) {
+async function GetVerticalAllowed(square, atack = false) {
     let allowedList = [];
     let file = parseInt($(square).attr('file'));
     let number = parseInt($(square).attr('number'));
@@ -497,8 +541,17 @@ async function GetVerticalAllowed(square) {
         if (HasPiece(sqr)) {
             if (!IsFriend(sqr, square)) {
                 allowedList.push(sqr)
+            } else if (atack) {
+                allowedList.push(sqr);
             }
-            break;
+            if (atack) {
+                let pieceId = GetPieceId(sqr);
+                if (!((pieceId === 5 && !IsWhite(square)) || (pieceId === 11 && IsWhite(square)))) {
+                    break;
+                }
+            } else {
+                break;
+            }
         }
         allowedList.push(sqr)
     }
@@ -512,8 +565,17 @@ async function GetVerticalAllowed(square) {
         if (HasPiece(sqr)) {
             if (!IsFriend(sqr, square)) {
                 allowedList.push(sqr)
+            } else if (atack) {
+                allowedList.push(sqr);
             }
-            break;
+            if (atack) {
+                let pieceId = GetPieceId(sqr);
+                if (!((pieceId === 5 && !IsWhite(square)) || (pieceId === 11 && IsWhite(square)))) {
+                    break;
+                }
+            } else {
+                break;
+            }
         }
         allowedList.push(sqr)
     }
@@ -527,8 +589,17 @@ async function GetVerticalAllowed(square) {
         if (HasPiece(sqr)) {
             if (!IsFriend(sqr, square)) {
                 allowedList.push(sqr)
+            } else if (atack) {
+                allowedList.push(sqr);
             }
-            break;
+            if (atack) {
+                let pieceId = GetPieceId(sqr);
+                if (!((pieceId === 5 && !IsWhite(square)) || (pieceId === 11 && IsWhite(square)))) {
+                    break;
+                }
+            } else {
+                break;
+            }
         }
         allowedList.push(sqr)
     }
@@ -542,8 +613,17 @@ async function GetVerticalAllowed(square) {
         if (HasPiece(sqr)) {
             if (!IsFriend(sqr, square)) {
                 allowedList.push(sqr)
+            } else if (atack) {
+                allowedList.push(sqr);
             }
-            break;
+            if (atack) {
+                let pieceId = GetPieceId(sqr);
+                if (!((pieceId === 5 && !IsWhite(square)) || (pieceId === 11 && IsWhite(square)))) {
+                    break;
+                }
+            } else {
+                break;
+            }
         }
         allowedList.push(sqr)
     }
@@ -551,11 +631,90 @@ async function GetVerticalAllowed(square) {
     return allowedList;
 }
 
-async function RookAllowedSquares(square) {
-    return await GetVerticalAllowed(square);
+async function RookAllowedSquares(square, atack = false) {
+    return await GetVerticalAllowed(square, atack);
 }
 
 async function KingAllowedSquares(square) {
+    let allowedList = [];
+    let file = parseInt($(square).attr('file'));
+    let number = parseInt($(square).attr('number'));
+
+    let enemyAtackedSquares;
+    if (IsWhite(square)) {
+        enemyAtackedSquares = await GetAtackedSquares(false);
+    } else {
+        enemyAtackedSquares = await GetAtackedSquares(true);
+    }
+
+    for (var i = file - 1; i <= file + 1; i++) {
+        for (var j = number - 1; j <= number + 1; j++) {
+
+            if (i > 8 || i < 1 || j > 8 || j < 1) {
+                continue;
+            }
+
+            let sqr = Squares[i][j];
+            if (enemyAtackedSquares.includes(sqr)) {
+                continue;
+            }
+            if (HasPiece(sqr)) {
+                if (IsFriend(sqr, square)) {
+                    continue;
+                }
+            }
+            allowedList.push(sqr)
+        }
+    }
+
+    //castling
+    if (IsWhite(square)) {
+        if (!(await IsCheck(true))) {
+            if (WhiteShortCastle) {
+                if (!HasPiece(Squares[6][1]) && !HasPiece(Squares[7][1])
+                    && !enemyAtackedSquares.includes(Squares[6][1])
+                    && !enemyAtackedSquares.includes(Squares[7][1])
+                    && !enemyAtackedSquares.includes(Squares[8][1])) {
+                    allowedList.push(Squares[7][1])
+                }
+            }
+            if (WhiteLongCastle) {
+                if (!HasPiece(Squares[2][1]) && !HasPiece(Squares[3][1]) && !HasPiece(Squares[4][1])
+                    && !enemyAtackedSquares.includes(Squares[1][1])
+                    && !enemyAtackedSquares.includes(Squares[2][1])
+                    && !enemyAtackedSquares.includes(Squares[3][1])
+                    && !enemyAtackedSquares.includes(Squares[4][1])) {
+                    allowedList.push(Squares[3][1])
+                }
+            }
+        }
+    } else {
+        if (!(await IsCheck(false))) {
+            if (BlackShortCastle) {
+                if (!HasPiece(Squares[6][8]) && !HasPiece(Squares[7][8])
+                    && !enemyAtackedSquares.includes(Squares[6][8])
+                    && !enemyAtackedSquares.includes(Squares[7][8])
+                    && !enemyAtackedSquares.includes(Squares[8][8])) {
+                    allowedList.push(Squares[7][8])
+                }
+            }
+            if (BlackLongCastle) {
+                if (!HasPiece(Squares[2][8]) && !HasPiece(Squares[3][8]) && !HasPiece(Squares[4][8])
+                    && !enemyAtackedSquares.includes(Squares[1][8])
+                    && !enemyAtackedSquares.includes(Squares[2][8])
+                    && !enemyAtackedSquares.includes(Squares[3][8])
+                    && !enemyAtackedSquares.includes(Squares[4][8])) {
+                    allowedList.push(Squares[3][8])
+                }
+            }
+        }
+    }
+
+    return allowedList;
+}
+
+async function GetKingAtackedSquares(square) {
+
     let allowedList = [];
     let file = parseInt($(square).attr('file'));
     let number = parseInt($(square).attr('number'));
@@ -569,51 +728,22 @@ async function KingAllowedSquares(square) {
 
             let sqr = Squares[i][j];
 
-            if (HasPiece(sqr)) {
-                if (IsFriend(sqr, square)) {
-                    continue;
-                }
-            }
             allowedList.push(sqr)
         }
     }
 
-    if (IsWhite(square)) {
-        if (WhiteShortCastle) {
-            if (!HasPiece(Squares[6][1]) && !HasPiece(Squares[7][1])) {
-                allowedList.push(Squares[7][1])
-            }
-        }
-        if (WhiteLongCastle) {
-            if (!HasPiece(Squares[2][1]) && !HasPiece(Squares[3][1]) && !HasPiece(Squares[4][1])) {
-                allowedList.push(Squares[3][1])
-            }
-        }
-    } else {
-        debugger;
-        if (BlackShortCastle) {
-            if (!HasPiece(Squares[6][8]) && !HasPiece(Squares[7][8])) {
-                allowedList.push(Squares[7][8])
-            }
-        }
-        if (BlackLongCastle) {
-            if (!HasPiece(Squares[2][8]) && !HasPiece(Squares[3][8]) && !HasPiece(Squares[4][8])) {
-                allowedList.push(Squares[3][8])
-            }
-        }
-    }
-
     return allowedList;
+
 }
 
-async function QueenAllowedSquares(square) {
+async function QueenAllowedSquares(square, atack = false) {
     let allowedList = [];
     let temp = [];
-    temp.push(await GetDiagonalAllowed(1, 1, square));
-    temp.push(await GetDiagonalAllowed(-1, 1, square));
-    temp.push(await GetDiagonalAllowed(1, -1, square));
-    temp.push(await GetDiagonalAllowed(-1, -1, square));
-    temp.push(await GetVerticalAllowed(square));
+    temp.push(await GetDiagonalAllowed(1, 1, square, atack));
+    temp.push(await GetDiagonalAllowed(-1, 1, square, atack));
+    temp.push(await GetDiagonalAllowed(1, -1, square, atack));
+    temp.push(await GetDiagonalAllowed(-1, -1, square, atack));
+    temp.push(await GetVerticalAllowed(square, atack));
 
     for (var i = 0; i < temp.length; i++) {
         let list = temp[i];
@@ -625,4 +755,80 @@ async function QueenAllowedSquares(square) {
     }
 
     return allowedList;
+}
+
+function GetPieceId(square) {
+    return parseInt($(square).attr('piece'));
+}
+
+async function GetPieces(White = true) {
+    let pieces = [];
+    let allPieces = $('.ChessSquareFull').toArray();
+
+    for (var i = 0; i < allPieces.length; i++) {
+        let item = allPieces[i];
+
+        if (IsWhite(item) === White) {
+            pieces.push(item);
+        }
+    }
+
+    return pieces;
+}
+
+async function GetAtackedSquares(White = true) {
+    let pieces = await GetPieces(White);
+    let atackedList = [];
+
+    for (var i = 0; i < pieces.length; i++) {
+        let item = pieces[i];
+        let pieceId = GetPieceId(item);
+        let atacked = [];
+        if (pieceId == 1 || pieceId == 7) {
+            atacked = await GetPawnAtackedSquares(item);
+        } else if (pieceId == 2 || pieceId == 8) {
+            atacked = await KnightAllowedSquares(item, true);
+        } else if (pieceId == 3 || pieceId == 9) {
+            atacked = await BishopAllowedSquares(item, true);
+        } else if (pieceId == 4 || pieceId == 10) {
+            atacked = await RookAllowedSquares(item, true);
+        } else if (pieceId == 5 || pieceId == 11) {
+            atacked = await GetKingAtackedSquares(item);
+        } else if (pieceId == 6 || pieceId == 12) {
+            atacked = await QueenAllowedSquares(item, true);
+        }
+
+        for (var j = 0; j < atacked.length; j++) {
+            let sqr = atacked[j];
+
+            if (!atackedList.includes(sqr)) {
+                atackedList.push(sqr);
+            }
+        }
+    }
+
+    return atackedList;
+}
+
+async function IsCheck(White = true) {
+    let atackedSquares = await GetAtackedSquares(!White);
+
+    let kingId = 5;
+    if (!White) {
+        kingId = 11;
+    }
+
+    for (var i = 0; i < atackedSquares.length; i++) {
+        let square = atackedSquares[i];
+
+        if (HasPiece(square)) {
+
+            let pieceId = GetPieceId(square);
+
+            if (pieceId === kingId) {
+                return true;
+            }
+        }
+    }
+    return false;
 }
