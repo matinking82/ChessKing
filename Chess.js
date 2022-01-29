@@ -11,6 +11,11 @@ let BlackShortCastle = true;
 let WhiteLongCastle = true;
 let WhiteShortCastle = true;
 let EnPassantSquare = null;
+let WhiteScore = 0;
+let BlackScore = 0;
+let LastMoveStartSquare = null;
+let LastMoveEndSquare = null;
+
 
 $(document).ready(async function () {
     mainHeight = $(document).innerHeight();
@@ -18,7 +23,7 @@ $(document).ready(async function () {
     if (mainHeight > mainWidth) {
         BoardWidth = mainWidth * 0.9;
     } else {
-        BoardWidth = mainHeight * 0.9;
+        BoardWidth = mainHeight * 0.7;
     }
     SquareWidth = BoardWidth / 8;
 
@@ -27,8 +32,13 @@ $(document).ready(async function () {
         "height": ('%spx', BoardWidth)
     })
 
-    await CreateBoard();
-    await SetPieces();
+    $('.menu').css('width', ('%spx', (BoardWidth - (2 * parseInt($('.menu').css('padding')))) / 1.5));
+    $('#ScoreBoard').css('width', ('%spx', BoardWidth));
+    $('#ScoreBoard').css('height', ('%spx', BoardWidth / 5));
+    $('#FlipBoard').click(FlipBoard);
+    $('#RestartGame').click(RestartGame);
+    debugger;
+    await StartGame();
 
 });
 
@@ -294,7 +304,7 @@ async function MovePiece(startSquare, endSquare) {
         Check(WhitesTurn);
     }
 
-
+    await ShowLastMove(startSquare, endSquare);
     return true;
 }
 
@@ -311,9 +321,9 @@ async function HasMoves(White = true) {
 
     for (var i = 0; i < Pieces.length; i++) {
         let piece = Pieces[i];
-        let AllowedSquares = await GetAllowedSquares(piece);
+        let allowedSquares = await GetAllowedSquares(piece);
 
-        if (AllowedSquares.length !== 0) {
+        if (allowedSquares.length !== 0) {
             return true;
         }
     }
@@ -323,6 +333,19 @@ async function HasMoves(White = true) {
 
 async function Mate(White = true) {
     alert('Mate!!!');
+    await AddScore(!White)
+}
+
+async function AddScore(White = true) {
+    debugger;
+    if (White) {
+        WhiteScore++;
+        $('#WhiteScoreNumber').text(WhiteScore);
+
+    } else {
+        BlackScore++;
+        $('#BlackScoreNumber').text(BlackScore);
+    }
 }
 
 async function FlipBoard() {
@@ -904,4 +927,45 @@ async function CheckPinAndReturn(square, allowedSquares) {
         .addClass('ChessSquareFull');
 
     return returnSquares;
+}
+
+async function RestartGame() {
+    if (SelectedSquare !== null) {
+        await UnSelectSquare(SelectedSquare);
+        SelectedSquare = null;
+    }
+    WhitesTurn = true;
+    AllowedSquares = []
+    BlackLongCastle = true;
+    BlackShortCastle = true;
+    WhiteLongCastle = true;
+    WhiteShortCastle = true;
+    EnPassantSquare = null;
+    LastMoveStartSquare = null;
+    LastMoveEndSquare = null;
+    Squares = [0];
+
+    await StartGame()
+
+    console.log(WhitesTurn);
+}
+
+async function StartGame() {
+    await CreateBoard();
+    await SetPieces();
+}
+
+async function ShowLastMove(startSquare, endSquare) {
+    if (LastMoveStartSquare !== null) {
+        $(LastMoveStartSquare).removeClass('LastMoveSquare');
+    }
+    if (LastMoveEndSquare !== null) {
+        $(LastMoveEndSquare).removeClass('LastMoveSquare');
+    }
+
+    LastMoveStartSquare = startSquare;
+    LastMoveEndSquare = endSquare;
+
+    $(LastMoveEndSquare).addClass('LastMoveSquare');
+    $(LastMoveStartSquare).addClass('LastMoveSquare');
 }

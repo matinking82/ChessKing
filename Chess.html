@@ -6,17 +6,29 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="Chess.css">
-    <link rel="stylesheet" href="/bootstrap/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="bootstrap/dist/css/bootstrap.min.css">
     <title>Chess King</title>
 </head>
 
 <body>
 
-    <div class="ChessBoard">
-        
+    <div id="ScoreBoard">
+        <div id="BlackScore">
+            <img src="Pieces/11.png" alt="WhiteKing" /> : <span id="BlackScoreNumber">0</span>
+        </div>
+        <div id="WhiteScore">
+            <img src="Pieces/5.png" alt="WhiteKing" /> : <span id="WhiteScoreNumber">0</span>
+        </div>
     </div>
 
+    <div class="ChessBoard">
 
+    </div>
+
+    <div class="menu">
+        <button class="btn-primary btn btn-block" id="RestartGame">Restart Game</button>
+        <button class="btn-success btn btn-block" id="FlipBoard">Flip Board</button>
+    </div>
 
     <script src="jquery/dist/jquery.min.js"></script>
     <script src="Chess.js"></script>

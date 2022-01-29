@@ -1,5 +1,5 @@
 body {
-    background-color: dimgray;
+    background-color: dimgray!important;
 }
 
 .ChessBoard {
@@ -7,7 +7,7 @@ body {
     margin: auto;
     position: relative;
     transform: rotate(0deg);
-    transition: transform 1s;
+    transition: transform 3s;
 }
 
 .ChessSquare {
@@ -27,7 +27,7 @@ body {
     height: 80%;
     margin: 10% auto;
     transform: rotate(0deg);
-    transition: transform 1s;
+    transition: transform 3s;
 }
 
 .SquareColor2 {
@@ -42,15 +42,52 @@ body {
     background-color: aquamarine !important;
 }
 
-.FlipBoard, .FlipBoard img {
+.FlipBoard{
     transform: rotate(180deg);
 }
+    .FlipBoard img {
+        transform: rotate(-180deg);
+    }
 
-.AllowedSquare1 {
-    background-color: #fb9552 !important;
-    cursor:pointer;
-}
+    .AllowedSquare1 {
+        background-color: #fb9552 !important;
+        cursor: pointer;
+    }
 .AllowedSquare2 {
     background-color: #8a5227 !important;
     cursor:pointer;
+}
+
+.menu {
+    box-shadow: 0px 30px 100px black;
+    text-align: right;
+    padding: 30px;
+    margin:30px auto;
+    border-radius:10px;
+    background-color:#d4ca92;
+}
+.btn{
+    border-radius:2px!important;
+}
+
+#ScoreBoard{
+    margin: 20px auto;
+    border-radius:20px;
+}
+
+#WhiteScore, #BlackScore{
+    display:inline-block;
+    width:49%;
+    height:100%;
+    margin:0;
+    padding:0;
+    font-size:40px;
+}
+
+    #WhiteScore img, #BlackScore img {
+        width:30%;
+    }
+
+.LastMoveSquare{
+    border:2px solid #c40707;    
 }
