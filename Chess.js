@@ -203,7 +203,7 @@ async function EmptySquare(square) {
 
 }
 
-async function MovePiece(startSquare, endSquare) {
+async function MovePiece(startSquare, endSquare, castle = false) {
     if (HasPiece(endSquare)) {
         if (IsFriend(startSquare, endSquare)) {
             await UnSelectSquare(startSquare);
@@ -231,11 +231,11 @@ async function MovePiece(startSquare, endSquare) {
     if (piece == 5) {
 
         if (endfile == 7 && WhiteShortCastle) {
-            await MovePiece(Squares[8][1], Squares[6][1]);
+            await MovePiece(Squares[8][1], Squares[6][1], true);
             ChangeTurn();
         }
         if (endfile == 3 && WhiteLongCastle) {
-            await MovePiece(Squares[1][1], Squares[4][1]);
+            await MovePiece(Squares[1][1], Squares[4][1], true);
             ChangeTurn();
         }
 
@@ -247,11 +247,11 @@ async function MovePiece(startSquare, endSquare) {
     if (piece == 11) {
 
         if (endfile == 7 && BlackShortCastle) {
-            await MovePiece(Squares[8][8], Squares[6][8]);
+            await MovePiece(Squares[8][8], Squares[6][8], true);
             ChangeTurn();
         }
         if (endfile == 3 && BlackLongCastle) {
-            await MovePiece(Squares[1][8], Squares[4][8]);
+            await MovePiece(Squares[1][8], Squares[4][8], true);
             ChangeTurn();
         }
 
@@ -308,7 +308,9 @@ async function MovePiece(startSquare, endSquare) {
     await EmptySquare(startSquare);
     await ChangeSquareImage(endSquare, piece);
     await ChangeTurn()
-    await AddPGN(startSquare, endSquare, takes);
+    if (!castle) {
+        await AddPGN(startSquare, endSquare, takes);
+    }
     let isCheck = await IsCheck(WhitesTurn);
     if (isCheck) {
         Check(WhitesTurn);
@@ -998,7 +1000,7 @@ async function PlayAudio(addres) {
 
 async function AddPGN(startSquare, endSquare, takes = true) {
 
-    let pgnMove = await CreatePGNMove(startSquare, endSquare,takes);
+    let pgnMove = await CreatePGNMove(startSquare, endSquare, takes);
 
     PGN.push(pgnMove);
 
@@ -1018,6 +1020,15 @@ async function CreatePGNMove(startSquare, endSquare, takes = true) {
     let PieceId = await GetPieceId(endSquare);
 
 
+    if (PieceId == 5 || PieceId == 11) {
+        if (Math.abs(startFile - endFile) == 2) {
+            if (endFile == 3) {
+                return 'O-O-O';
+            } else {
+                return 'O-O';
+            }
+        }
+    }
 
     if (PieceId == 1 || PieceId == 7) {
         if (takes) {
@@ -1025,23 +1036,53 @@ async function CreatePGNMove(startSquare, endSquare, takes = true) {
         }
     } else {
         startPgn = PieceNames[PieceId];
+
+        let otherPieces = await GetSquaresWithPieceId(PieceId);
+        if (otherPieces.length > 1) {
+
+            for (var i = 0; i < otherPieces.length; i++) {
+                let item = otherPieces[i];
+                if (item == endSquare) {
+                    continue;
+                }
+
+                let allowed;
+
+                if (PieceId == 2 || PieceId == 8) {
+                    allowed = await KnightAllowedSquares(item, true);
+                } else if (PieceId == 3 || PieceId == 9) {
+                    allowed = await BishopAllowedSquares(item, true);
+                } else if (PieceId == 4 || PieceId == 10) {
+                    allowed = await RookAllowedSquares(item, true);
+                } else if (PieceId == 6 || PieceId == 12) {
+                    allowed = await QueenAllowedSquares(item, true);
+                }
+
+
+                if (allowed.includes(endSquare)) {
+                    startPgn = startPgn + FileNames[startFile];
+                }
+            }
+
+
+        }
     }
 
     if (takes) {
         midPgn = 'x';
     }
 
-    let returtPgn = startPgn + midPgn + endPgn;
+    let returnPgn = startPgn + midPgn + endPgn;
 
     if (await IsCheck(!IsWhite(endSquare))) {
         if (!(await HasMoves(!IsWhite(endSquare)))) {
-            returtPgn = returtPgn + '#';
+            returnPgn = returnPgn + '#';
         } else {
-            returtPgn = returtPgn + '+';
+            returnPgn = returnPgn + '+';
         }
     }
 
-    return returtPgn ;
+    return returnPgn;
 }
 
 async function UpdatePgnBoard() {
@@ -1061,4 +1102,8 @@ async function UpdatePgnBoard() {
     }
 
     $('#PgnBoard').text(pgnText);
+}
+
+async function GetSquaresWithPieceId(PieceId) {
+    return $('[piece=' + PieceId + ']').toArray();
 }
