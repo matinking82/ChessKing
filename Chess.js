@@ -302,14 +302,32 @@ async function MovePiece(startSquare, endSquare, castle = false) {
             EmptySquare(Squares[endfile][endnumber + 1])
             takes = true;
         }
+
     }
 
 
     await EmptySquare(startSquare);
     await ChangeSquareImage(endSquare, piece);
     await ChangeTurn()
+
+    //Promote
+    let promoteName = null;
+    if ((piece == 1 && endnumber == 8) || (piece == 7 && endnumber == 1)) {
+
+        let promoteTo;
+
+        if (IsWhite(endSquare)) {
+            promoteTo = 6;
+        } else {
+            promoteTo = 12;
+        }
+
+        await promote(endSquare, promoteTo);
+        promoteName = PieceNames[promoteTo];
+    }
+
     if (!castle) {
-        await AddPGN(startSquare, endSquare, takes);
+        await AddPGN(startSquare, endSquare, takes, promoteName);
     }
     let isCheck = await IsCheck(WhitesTurn);
     if (isCheck) {
@@ -320,6 +338,10 @@ async function MovePiece(startSquare, endSquare, castle = false) {
 
     await ShowLastMove(startSquare, endSquare);
     return true;
+}
+
+async function promote(square, PromoteId) {
+    await ChangeSquareImage(square, PromoteId);
 }
 
 async function Check(White = true) {
@@ -998,9 +1020,9 @@ async function PlayAudio(addres) {
     myAudio.play();
 }
 
-async function AddPGN(startSquare, endSquare, takes = true) {
+async function AddPGN(startSquare, endSquare, takes, promote = null) {
 
-    let pgnMove = await CreatePGNMove(startSquare, endSquare, takes);
+    let pgnMove = await CreatePGNMove(startSquare, endSquare, takes, promote);
 
     PGN.push(pgnMove);
 
@@ -1008,8 +1030,9 @@ async function AddPGN(startSquare, endSquare, takes = true) {
 
 };
 
-async function CreatePGNMove(startSquare, endSquare, takes = true) {
+async function CreatePGNMove(startSquare, endSquare, takes, promote = null) {
     let startFile = parseInt($(startSquare).attr('file'));
+    let startNumber = parseInt($(startSquare).attr('number'));
     let endFile = parseInt($(endSquare).attr('file'));
     let endNumber = parseInt($(endSquare).attr('number'));
 
@@ -1040,6 +1063,7 @@ async function CreatePGNMove(startSquare, endSquare, takes = true) {
         let otherPieces = await GetSquaresWithPieceId(PieceId);
         if (otherPieces.length > 1) {
 
+            let otherAllowed = [];
             for (var i = 0; i < otherPieces.length; i++) {
                 let item = otherPieces[i];
                 if (item == endSquare) {
@@ -1060,16 +1084,49 @@ async function CreatePGNMove(startSquare, endSquare, takes = true) {
 
 
                 if (allowed.includes(endSquare)) {
-                    startPgn = startPgn + FileNames[startFile];
+                    otherAllowed.push(item);
                 }
             }
+            if (otherAllowed != 0) {
+                let isFileExist = false;
+                let isNumberExist = false;
+                for (var i = 0; i < otherAllowed.length; i++) {
+                    let item = otherAllowed[i];
+                    let itemFile = parseInt($(item).attr('file'));
+                    let itemNumber = parseInt($(item).attr('number'));
 
+                    if (itemFile == startFile) {
+                        isFileExist = true;
+                    }
+                    if (itemNumber == startNumber) {
+                        isNumberExist = true;
+                    }
+                }
+
+                if ((!isFileExist && !isNumberExist) || isNumberExist) {
+                    startPgn = startPgn + FileNames[startFile];
+
+                } else if (isFileExist) {
+                    startPgn = startPgn + startNumber;
+                } else if (isNumberExist && isFileExist) {
+                    startPgn = startPgn + FileNames[startFile] + startNumber;
+                }
+            }
 
         }
     }
 
     if (takes) {
         midPgn = 'x';
+    }
+
+    if (promote !== null) {
+        endPgn = endPgn + '=' + promote;
+        if (startFile != endFile) {
+            startPgn = FileNames[startFile];
+        } else {
+            startPgn = '';
+        }
     }
 
     let returnPgn = startPgn + midPgn + endPgn;
@@ -1081,6 +1138,7 @@ async function CreatePGNMove(startSquare, endSquare, takes = true) {
             returnPgn = returnPgn + '+';
         }
     }
+
 
     return returnPgn;
 }
