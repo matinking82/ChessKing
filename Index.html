@@ -28,14 +28,33 @@
     <div class="menu">
         <button class="btn-primary btn btn-block" id="RestartGame">Restart Game</button>
         <button class="btn-success btn btn-block" id="FlipBoard">Flip Board</button>
+        <button id="ShowPgnModal" class="btn btn-danger btn-block">insert pgn</button>
     </div>
 
     <div id="PgnBoard" class="alert alert-info">
-        PGN : 
+        PGN : <span id="PgnText"></span>
     </div>
 
+
     <script src="jquery/dist/jquery.min.js"></script>
+    <script src="bootstrap/dist/js/bootstrap.min.js"></script>
     <script src="Chess.js"></script>
+
+    <div id="InsertPgnModal" class="modal fade" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Insert pgn</h5>
+                </div>
+                <div class="modal-body">
+                    <textarea id="txtInsertPgn" class="form-control"></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" id="btnInsertPgn" class="btn btn-success">Insert</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 
 </html>

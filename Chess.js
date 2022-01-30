@@ -41,6 +41,8 @@ $(document).ready(async function () {
     $('#PgnBoard').css('width', ('%spx', BoardWidth));
     $('#FlipBoard').click(FlipBoard);
     $('#RestartGame').click(RestartGame);
+    $('#ShowPgnModal').click(ShowPgnModal);
+    $('#btnInsertPgn').click(btnInsertPgnClicked);
     await StartGame();
 
 });
@@ -212,7 +214,7 @@ async function MovePiece(startSquare, endSquare, castle = false) {
         }
     }
 
-    if (!AllowedSquares.includes(endSquare)) {
+    if (!(await CanMove(startSquare, endSquare))) {
         return false;
     }
 
@@ -1103,13 +1105,14 @@ async function CreatePGNMove(startSquare, endSquare, takes, promote = null) {
                     }
                 }
 
-                if ((!isFileExist && !isNumberExist) || isNumberExist) {
+                if ((!isFileExist && !isNumberExist)) {
                     startPgn = startPgn + FileNames[startFile];
-
-                } else if (isFileExist) {
-                    startPgn = startPgn + startNumber;
                 } else if (isNumberExist && isFileExist) {
                     startPgn = startPgn + FileNames[startFile] + startNumber;
+                } else if (isNumberExist) {
+                    startPgn = startPgn + FileNames[startFile];
+                } else if (isFileExist) {
+                    startPgn = startPgn + startNumber;
                 }
             }
 
@@ -1144,7 +1147,7 @@ async function CreatePGNMove(startSquare, endSquare, takes, promote = null) {
 }
 
 async function UpdatePgnBoard() {
-    let pgnText = 'PGN : ';
+    let pgnText = '';
 
     let counter = 1;
     let isWhite = true;
@@ -1159,9 +1162,243 @@ async function UpdatePgnBoard() {
         isWhite = !isWhite;
     }
 
-    $('#PgnBoard').text(pgnText);
+    $('#PgnText').text(pgnText);
 }
 
 async function GetSquaresWithPieceId(PieceId) {
     return $('[piece=' + PieceId + ']').toArray();
+}
+
+async function ShowPgnModal() {
+    $('#InsertPgnModal').modal('show');
+}
+
+async function btnInsertPgnClicked() {
+    $('#InsertPgnModal').modal('hide');
+
+    let pgnText = $('#txtInsertPgn').val();
+    $('#txtInsertPgn').val('');
+    
+    pgnText = pgnText.replace(/^\s+/, '');
+    pgnText = pgnText.replace(/\s+$/, '');
+    pgnText = pgnText.replaceAll(/\s+/g, ' ');
+
+    console.log(pgnText);
+    let pgntemp = pgnText.split(' ');
+    let pgnArray = [];
+
+    for (var i = 0; i < pgntemp.length; i++) {
+        if (i % 3 == 0) {
+            continue;
+        }
+
+        pgnArray.push(pgntemp[i]);
+    }
+
+    CreateBoardWithPgn(pgnArray);
+}
+
+async function CreateBoardWithPgn(pgnArray = [''], untilMove = null) {
+    await RestartGame();
+    for (var i = 0; i < pgnArray.length; i++) {
+        let item = pgnArray[i];
+
+        item = item.replace('+', '');
+        item = item.replace('#', '');
+        item = item.replace('x', '');
+        let pgnType = await GetPgnType(item);
+        if (pgnType == 0) {
+            break;
+        }
+
+        let white = (i % 2 == 0);
+
+        let startSquare;
+        let endSquare;
+
+        if (pgnType !== 6 && pgnType !== 7) {
+            endSquare = Squares[FileNames.indexOf(item[item.length - 2])][parseInt(item[item.length - 1])];
+        }
+
+        let pieceId;
+        let squares;
+
+        switch (pgnType) {
+            case 1://(example: e4 or ge4)
+                pieceId = 1;
+                if (!white) {
+                    pieceId = 7;
+                }
+
+                squares = $('[piece=' + pieceId + '][file=' + FileNames.indexOf(item[0]) + ']').toArray();
+
+                for (var j = 0; j < squares.length; j++) {
+                    let sqr = squares[j];
+
+                    if (await CanMove(sqr, endSquare)) {
+                        startSquare = sqr
+                        break;
+                    }
+                }
+
+                break;
+
+            case 2://(example: Qd4)
+                pieceId = PieceNames.indexOf(item[0]);
+                if (!white) {
+                    pieceId = pieceId + 6;
+                }
+
+                squares = $('[piece=' + pieceId + ']').toArray();
+
+                for (var j = 0; j < squares.length; j++) {
+                    let sqr = squares[j];
+
+                    if (await CanMove(sqr, endSquare)) {
+                        startSquare = sqr
+                        break;
+                    }
+                }
+                break;
+
+            case 3://(example: Qbd4)
+                pieceId = PieceNames.indexOf(item[0]);
+                if (!white) {
+                    pieceId = pieceId + 6;
+                }
+
+                squares = $('[piece=' + pieceId + '][file=' + FileNames.indexOf(item[1]) + ']').toArray();
+
+                for (var j = 0; j < squares.length; j++) {
+                    let sqr = squares[j];
+
+                    if (await CanMove(sqr, endSquare)) {
+                        startSquare = sqr
+                        break;
+                    }
+                }
+                break;
+
+            case 4://(example: Q3d4)
+                pieceId = PieceNames.indexOf(item[0]);
+                if (!white) {
+                    pieceId = pieceId + 6;
+                }
+
+                squares = $('[piece=' + pieceId + '][number=' + parseInt(item[1]) + ']').toArray();
+
+                for (var j = 0; j < squares.length; j++) {
+                    let sqr = squares[j];
+
+                    if (await CanMove(sqr, endSquare)) {
+                        startSquare = sqr
+                        break;
+                    }
+                }
+                break;
+
+            case 5://(example: Qb3d4)
+                pieceId = PieceNames.indexOf(item[0]);
+                if (!white) {
+                    pieceId = pieceId + 6;
+                }
+
+                squares = $('[piece=' + pieceId + '][file=' + FileNames.indexOf(item[1]) + '][number=' + parseInt(item[2]) + ']').toArray();
+
+                for (var j = 0; j < squares.length; j++) {
+                    let sqr = squares[j];
+
+                    if (await CanMove(sqr, endSquare)) {
+                        startSquare = sqr
+                        break;
+                    }
+                }
+                break;
+
+            case 6://O-O
+                if (white) {
+                    if (WhiteShortCastle) {
+                        let start = Squares[5][1];
+                        let end = Squares[7][1];
+                        if (await CanMove(start, end)) {
+                            startSquare = start;
+                            endSquare = end;
+                        }
+                    }
+                } else {
+                    if (BlackShortCastle) {
+                        let start = Squares[5][8];
+                        let end = Squares[7][8];
+                        if (await CanMove(start, end)) {
+                            startSquare = start;
+                            endSquare = end;
+                        }
+                    }
+                }
+                break;
+
+            case 7://O-O-O
+                if (white) {
+                    if (WhiteLongCastle) {
+                        let start = Squares[5][1];
+                        let end = Squares[3][1];
+                        if (await CanMove(start, end)) {
+                            startSquare = start;
+                            endSquare = end;
+                        }
+                    }
+                } else {
+                    if (BlackLongCastle) {
+                        let start = Squares[5][8];
+                        let end = Squares[3][8];
+                        if (await CanMove(start, end)) {
+                            startSquare = start;
+                            endSquare = end;
+                        }
+                    }
+                }
+                break;
+        }
+
+        if (startSquare == null) {
+            break;
+        }
+
+        await MovePiece(startSquare, endSquare);
+
+    }
+}
+
+async function GetPgnType(pgnItem) {
+
+    if (pgnItem == 'O-O') {
+        return 6;
+    } else if (pgnItem == 'O-O-O') {
+        return 7;
+    }
+
+    let regex1 = new RegExp("^[a-h]?[a-h][1-8]$");
+    let regex2 = new RegExp("^[B|N|R|Q|K][a-h][1-8]$");
+    let regex3 = new RegExp("^[B|N|R|Q|K][a-h]{2}[1-8]$");
+    let regex4 = new RegExp("^[B|N|R|Q|K][1-8][a-h][1-8]$");
+    let regex5 = new RegExp("^[B|N|R|Q|K][a-h][1-8][a-h][1-8]$");
+
+    if (regex1.test(pgnItem)) {
+        return 1;
+    } else if (regex2.test(pgnItem)) {
+        return 2;
+    } else if (regex3.test(pgnItem)) {
+        return 3;
+    } else if (regex4.test(pgnItem)) {
+        return 4;
+    } else if (regex5.test(pgnItem)) {
+        return 5;
+    }
+    return 0;
+}
+
+async function CanMove(startSquare, endSquare) {
+    let allowedSquares = await GetAllowedSquares(startSquare);
+
+    return allowedSquares.includes(endSquare);
 }
