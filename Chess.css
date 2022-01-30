@@ -91,3 +91,8 @@ body {
 .LastMoveSquare{
     border:2px solid #c40707;    
 }
+
+#PgnBoard {
+    min-height:200px;
+    margin:20px auto;
+}

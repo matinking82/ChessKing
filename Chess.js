@@ -15,6 +15,9 @@ let WhiteScore = 0;
 let BlackScore = 0;
 let LastMoveStartSquare = null;
 let LastMoveEndSquare = null;
+const FileNames = [0, 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
+const PieceNames = [0, '', 'N', 'B', 'R', 'K', 'Q', '', 'N', 'B', 'R', 'K', 'Q']
+let PGN = [];
 
 
 $(document).ready(async function () {
@@ -35,9 +38,9 @@ $(document).ready(async function () {
     $('.menu').css('width', ('%spx', (BoardWidth - (2 * parseInt($('.menu').css('padding')))) / 1.5));
     $('#ScoreBoard').css('width', ('%spx', BoardWidth));
     $('#ScoreBoard').css('height', ('%spx', BoardWidth / 5));
+    $('#PgnBoard').css('width', ('%spx', BoardWidth));
     $('#FlipBoard').click(FlipBoard);
     $('#RestartGame').click(RestartGame);
-    debugger;
     await StartGame();
 
 });
@@ -276,6 +279,11 @@ async function MovePiece(startSquare, endSquare) {
 
 
     //en passant
+    let takes = false;
+
+    if (HasPiece(endSquare)) {
+        takes = true;
+    }
 
     if (piece == 1) {
         if (Math.abs(number - endnumber) == 2) {
@@ -283,6 +291,7 @@ async function MovePiece(startSquare, endSquare) {
         }
         if (endSquare == enPassant) {
             EmptySquare(Squares[endfile][endnumber - 1])
+            takes = true;
         }
     }
     if (piece == 7) {
@@ -291,15 +300,15 @@ async function MovePiece(startSquare, endSquare) {
         }
         if (endSquare == enPassant) {
             EmptySquare(Squares[endfile][endnumber + 1])
+            takes = true;
         }
     }
-
 
 
     await EmptySquare(startSquare);
     await ChangeSquareImage(endSquare, piece);
     await ChangeTurn()
-    debugger;
+    await AddPGN(startSquare, endSquare, takes);
     let isCheck = await IsCheck(WhitesTurn);
     if (isCheck) {
         Check(WhitesTurn);
@@ -953,6 +962,8 @@ async function RestartGame() {
     EnPassantSquare = null;
     LastMoveStartSquare = null;
     LastMoveEndSquare = null;
+    PGN = [];
+    await UpdatePgnBoard();
     Squares = [0];
 
     await StartGame()
@@ -983,4 +994,71 @@ async function ShowLastMove(startSquare, endSquare) {
 async function PlayAudio(addres) {
     let myAudio = new Audio(addres);
     myAudio.play();
+}
+
+async function AddPGN(startSquare, endSquare, takes = true) {
+
+    let pgnMove = await CreatePGNMove(startSquare, endSquare,takes);
+
+    PGN.push(pgnMove);
+
+    await UpdatePgnBoard();
+
+};
+
+async function CreatePGNMove(startSquare, endSquare, takes = true) {
+    let startFile = parseInt($(startSquare).attr('file'));
+    let endFile = parseInt($(endSquare).attr('file'));
+    let endNumber = parseInt($(endSquare).attr('number'));
+
+    let startPgn = '';
+    let midPgn = '';
+    let endPgn = FileNames[endFile] + endNumber.toString();
+
+    let PieceId = await GetPieceId(endSquare);
+
+
+
+    if (PieceId == 1 || PieceId == 7) {
+        if (takes) {
+            startPgn = FileNames[startFile];
+        }
+    } else {
+        startPgn = PieceNames[PieceId];
+    }
+
+    if (takes) {
+        midPgn = 'x';
+    }
+
+    let returtPgn = startPgn + midPgn + endPgn;
+
+    if (await IsCheck(!IsWhite(endSquare))) {
+        if (!(await HasMoves(!IsWhite(endSquare)))) {
+            returtPgn = returtPgn + '#';
+        } else {
+            returtPgn = returtPgn + '+';
+        }
+    }
+
+    return returtPgn ;
+}
+
+async function UpdatePgnBoard() {
+    let pgnText = 'PGN : ';
+
+    let counter = 1;
+    let isWhite = true;
+    for (var i = 0; i < PGN.length; i++) {
+        var item = PGN[i];
+        if (isWhite) {
+            pgnText = pgnText + counter + '. ';
+            counter += 1;
+        }
+
+        pgnText = pgnText + item + ' '
+        isWhite = !isWhite;
+    }
+
+    $('#PgnBoard').text(pgnText);
 }
