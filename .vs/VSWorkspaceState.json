@@ -1,6 +1,9 @@
 {
   "ExpandedNodes": [
     "",
+    "\\bootstrap",
+    "\\bootstrap\\dist",
+    "\\bootstrap\\dist\\js",
     "\\SFX"
   ],
   "SelectedNode": "\\Chess.js",

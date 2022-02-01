@@ -1202,7 +1202,7 @@ async function btnInsertPgnClicked() {
     let pgnText = $('#txtInsertPgn').val();
     $('#txtInsertPgn').val('');
 
-    pgnText = FixText(pgnText);
+    pgnText = await FixText(pgnText);
 
     let pgntemp = pgnText.split(' ');
     let pgnArray = [];
