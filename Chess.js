@@ -40,55 +40,61 @@ $(document).ready(async function () {
     $('#ScoreBoard').css('width', ('%spx', BoardWidth));
     $('#ScoreBoard').css('height', ('%spx', BoardWidth / 5));
     $('#PgnBoard').css('width', ('%spx', BoardWidth));
-    $('.FENBoard').css('width', ('%spx', BoardWidth)); 
+    $('.FENBoard').css('width', ('%spx', BoardWidth));
     $('#FlipBoard').click(FlipBoard);
     $('#RestartGame').click(RestartGame);
     $('#ShowPgnModal').click(ShowPgnModal);
     $('#btnInsertPgn').click(btnInsertPgnClicked);
     $("#btnCopyPgn").click(btnCopyPgnClicked);
+    $('#btnInsertFEN').click(btnInsertFENClicked);
 
     await StartGame();
 
 });
 
 async function SetPieces() {
-    //White Pieces
-    ChangeSquareImage(Squares[1][2], 1);
-    ChangeSquareImage(Squares[2][2], 1);
-    ChangeSquareImage(Squares[3][2], 1);
-    ChangeSquareImage(Squares[4][2], 1);
-    ChangeSquareImage(Squares[5][2], 1);
-    ChangeSquareImage(Squares[6][2], 1);
-    ChangeSquareImage(Squares[7][2], 1);
-    ChangeSquareImage(Squares[8][2], 1);
-    ChangeSquareImage(Squares[1][1], 4);
-    ChangeSquareImage(Squares[8][1], 4);
-    ChangeSquareImage(Squares[3][1], 3);
-    ChangeSquareImage(Squares[6][1], 3);
-    ChangeSquareImage(Squares[2][1], 2);
-    ChangeSquareImage(Squares[7][1], 2);
-    ChangeSquareImage(Squares[5][1], 5);
-    ChangeSquareImage(Squares[4][1], 6);
+    debugger;
+    let startFEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq';
+
+    await CreateBoardWithFEN(startFEN);
+
+    ////White Pieces
+    //ChangeSquareImage(Squares[1][2], 1);
+    //ChangeSquareImage(Squares[2][2], 1);
+    //ChangeSquareImage(Squares[3][2], 1);
+    //ChangeSquareImage(Squares[4][2], 1);
+    //ChangeSquareImage(Squares[5][2], 1);
+    //ChangeSquareImage(Squares[6][2], 1);
+    //ChangeSquareImage(Squares[7][2], 1);
+    //ChangeSquareImage(Squares[8][2], 1);
+    //ChangeSquareImage(Squares[1][1], 4);
+    //ChangeSquareImage(Squares[8][1], 4);
+    //ChangeSquareImage(Squares[3][1], 3);
+    //ChangeSquareImage(Squares[6][1], 3);
+    //ChangeSquareImage(Squares[2][1], 2);
+    //ChangeSquareImage(Squares[7][1], 2);
+    //ChangeSquareImage(Squares[5][1], 5);
+    //ChangeSquareImage(Squares[4][1], 6);
 
 
 
-    //Black Pieces
-    ChangeSquareImage(Squares[1][7], 7);
-    ChangeSquareImage(Squares[2][7], 7);
-    ChangeSquareImage(Squares[3][7], 7);
-    ChangeSquareImage(Squares[4][7], 7);
-    ChangeSquareImage(Squares[5][7], 7);
-    ChangeSquareImage(Squares[6][7], 7);
-    ChangeSquareImage(Squares[7][7], 7);
-    ChangeSquareImage(Squares[8][7], 7);
-    ChangeSquareImage(Squares[1][8], 10);
-    ChangeSquareImage(Squares[8][8], 10);
-    ChangeSquareImage(Squares[3][8], 9);
-    ChangeSquareImage(Squares[6][8], 9);
-    ChangeSquareImage(Squares[2][8], 8);
-    ChangeSquareImage(Squares[7][8], 8);
-    ChangeSquareImage(Squares[5][8], 11);
-    ChangeSquareImage(Squares[4][8], 12);
+    ////Black Pieces
+    //ChangeSquareImage(Squares[1][7], 7);
+    //ChangeSquareImage(Squares[2][7], 7);
+    //ChangeSquareImage(Squares[3][7], 7);
+    //ChangeSquareImage(Squares[4][7], 7);
+    //ChangeSquareImage(Squares[5][7], 7);
+    //ChangeSquareImage(Squares[6][7], 7);
+    //ChangeSquareImage(Squares[7][7], 7);
+    //ChangeSquareImage(Squares[8][7], 7);
+    //ChangeSquareImage(Squares[1][8], 10);
+    //ChangeSquareImage(Squares[8][8], 10);
+    //ChangeSquareImage(Squares[3][8], 9);
+    //ChangeSquareImage(Squares[6][8], 9);
+    //ChangeSquareImage(Squares[2][8], 8);
+    //ChangeSquareImage(Squares[7][8], 8);
+    //ChangeSquareImage(Squares[5][8], 11);
+    //ChangeSquareImage(Squares[4][8], 12);
 }
 
 async function CreateBoard() {
@@ -1009,7 +1015,7 @@ async function RestartGame() {
 async function StartGame() {
     await CreateBoard();
     await SetPieces();
-    await UpdateFENBoard();
+    //await UpdateFENBoard();
 }
 
 async function UpdateFENBoard() {
@@ -1196,9 +1202,7 @@ async function btnInsertPgnClicked() {
     let pgnText = $('#txtInsertPgn').val();
     $('#txtInsertPgn').val('');
 
-    pgnText = pgnText.replace(/^\s+/, '');
-    pgnText = pgnText.replace(/\s+$/, '');
-    pgnText = pgnText.replaceAll(/\s+/g, ' ');
+    pgnText = FixText(pgnText);
 
     let pgntemp = pgnText.split(' ');
     let pgnArray = [];
@@ -1512,7 +1516,127 @@ async function CreateFENText() {
     return FENText;
 }
 
-async function CreateBoardWithFEN(FEN) {
-    //TODO
+async function ClearPieces() {
+    let temp = $('.ChessSquareFull').toArray();
+    for (var i = 0; i < temp.length; i++) {
+        let item = temp[i];
+
+        await EmptySquare(item);
+    }
 }
 
+async function btnInsertFENClicked() {
+    let FENText = $('#txtFENBoard').val();
+
+    await CreateBoardWithFEN(FENText);
+
+    await UpdateFENBoard();
+}
+
+async function CreateBoardWithFEN(FEN = '') {
+    debugger;
+    FEN = await FixText(FEN);
+    let temp = FEN.split(' ');
+    debugger;
+    if (temp.length < 2) {
+        return false;
+    }
+
+
+
+    let fenRows = temp[0].split('/');
+    if (fenRows.length !== 8) {
+        return false;
+    }
+
+    if (temp[1] == 'w') {
+        WhitesTurn = true;
+    } else if (temp[1] == 'b') {
+        WhitesTurn = false;
+    } else {
+        return false;
+    }
+
+
+    if (SelectedSquare !== null) {
+        await UnSelectSquare(SelectedSquare);
+        SelectedSquare = null;
+    }
+
+    AllowedSquares = []
+    EnPassantSquare = null;
+    LastMoveStartSquare = null;
+    LastMoveEndSquare = null;
+    PGN = [];
+    $('.LastMoveSquare').removeClass('LastMoveSquare');
+
+    await UpdatePgnBoard();
+    await ClearPieces();
+
+    let number = 8;
+    for (var i = 0; i < fenRows.length; i++) {
+        let file = 1;
+        let row = fenRows[i];
+        for (var j = 0; j < row.length; j++) {
+            let item = row[j];
+
+            if (isNaN(item)) {
+                let pieceId = FENPieceNames.indexOf(item);
+
+                await ChangeSquareImage(Squares[file][number], pieceId)
+
+                file++;
+            } else {
+                file += parseInt(item);
+            }
+        }
+
+        number--;
+    }
+
+    WhiteShortCastle = false;
+    WhiteLongCastle = false;
+    BlackLongCastle = false;
+    BlackShortCastle = false;
+
+    if (new RegExp('^[K]?[Q]?[k]?[q]?$').test(temp[2])) {
+
+        if (/K{1}/.test(temp[2])) {
+            WhiteShortCastle = true;
+        }
+        if (/Q{1}/.test(temp[2])) {
+            WhiteLongCastle = true;
+        }
+        if (/k{1}/.test(temp[2])) {
+            BlackShortCastle = true;
+        }
+        if (/q{1}/.test(temp[2])) {
+            BlackLongCastle = true;
+        }
+    } else {
+        WhiteShortCastle = true;
+        WhiteLongCastle  = true;
+        BlackLongCastle  = true;
+        BlackShortCastle = true;
+    }
+
+
+    if (WhitesTurn && await IsCheck(!WhitesTurn)) {
+        await RestartGame();
+        return false;
+    }
+
+    if (await IsCheck(WhitesTurn)) {
+        await Check(WhitesTurn);
+    }
+    await UpdateFENBoard();
+    return true;
+}
+
+async function FixText(Text) {
+    Text = Text.replace(/^\s+/, '');
+    Text = Text.replace(/\s+$/, '');
+    Text = Text.replaceAll(/\s+/g, ' ');
+
+    return Text;
+}
