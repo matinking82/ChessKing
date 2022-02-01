@@ -205,7 +205,7 @@ async function EmptySquare(square) {
 
 }
 
-async function MovePiece(startSquare, endSquare, castle = false) {
+async function MovePiece(startSquare, endSquare, castle = false, promote = null) {
     if (HasPiece(endSquare)) {
         if (IsFriend(startSquare, endSquare)) {
             await UnSelectSquare(startSquare);
@@ -318,13 +318,17 @@ async function MovePiece(startSquare, endSquare, castle = false) {
 
         let promoteTo;
 
-        if (IsWhite(endSquare)) {
-            promoteTo = 6;
+        if (promote !== null) {
+            promoteTo = promote;
         } else {
-            promoteTo = 12;
+            if (IsWhite(endSquare)) {
+                promoteTo = 6;
+            } else {
+                promoteTo = 12;
+            }
         }
 
-        await promote(endSquare, promoteTo);
+        await Promote(endSquare, promoteTo);
         promoteName = PieceNames[promoteTo];
     }
 
@@ -342,7 +346,7 @@ async function MovePiece(startSquare, endSquare, castle = false) {
     return true;
 }
 
-async function promote(square, PromoteId) {
+async function Promote(square, PromoteId) {
     await ChangeSquareImage(square, PromoteId);
 }
 
@@ -1179,7 +1183,7 @@ async function btnInsertPgnClicked() {
 
     let pgnText = $('#txtInsertPgn').val();
     $('#txtInsertPgn').val('');
-    
+
     pgnText = pgnText.replace(/^\s+/, '');
     pgnText = pgnText.replace(/\s+$/, '');
     pgnText = pgnText.replaceAll(/\s+/g, ' ');
@@ -1201,8 +1205,11 @@ async function btnInsertPgnClicked() {
 
 async function CreateBoardWithPgn(pgnArray = [''], untilMove = null) {
     await RestartGame();
+
+    debugger;
     for (var i = 0; i < pgnArray.length; i++) {
         let item = pgnArray[i];
+
 
         item = item.replace('+', '');
         item = item.replace('#', '');
@@ -1217,12 +1224,14 @@ async function CreateBoardWithPgn(pgnArray = [''], untilMove = null) {
         let startSquare;
         let endSquare;
 
-        if (pgnType !== 6 && pgnType !== 7) {
+        if (pgnType !== 6 && pgnType !== 7 && pgnType !== 8) {
             endSquare = Squares[FileNames.indexOf(item[item.length - 2])][parseInt(item[item.length - 1])];
         }
 
         let pieceId;
         let squares;
+        let CanDo = true;
+
 
         switch (pgnType) {
             case 1://(example: e4 or ge4)
@@ -1359,13 +1368,37 @@ async function CreateBoardWithPgn(pgnArray = [''], untilMove = null) {
                     }
                 }
                 break;
+
+            case 8://e8=Q or fe8=Q
+                CanDo = false;
+                pieceId = 1;
+                if (!white) {
+                    pieceId = 7;
+                }
+
+                let temp = item.split('=');
+                endSquare = Squares[FileNames.indexOf(temp[0][temp[0].length - 2])][parseInt(temp[0][temp[0].length - 1])];
+
+                squares = $('[piece=' + pieceId + '][file=' + FileNames.indexOf(item[0]) + ']').toArray();
+
+                for (var j = 0; j < squares.length; j++) {
+                    let sqr = squares[j];
+
+                    if (await CanMove(sqr, endSquare)) {
+                        startSquare = sqr;
+                        await MovePiece(startSquare, endSquare, false, PieceNames.indexOf(temp[1]));
+                        break;
+                    }
+                }
+                break;
         }
 
         if (startSquare == null) {
             break;
         }
-
-        await MovePiece(startSquare, endSquare);
+        if (CanDo) {
+            await MovePiece(startSquare, endSquare);
+        }
 
     }
 }
@@ -1383,6 +1416,8 @@ async function GetPgnType(pgnItem) {
     let regex3 = new RegExp("^[B|N|R|Q|K][a-h]{2}[1-8]$");
     let regex4 = new RegExp("^[B|N|R|Q|K][1-8][a-h][1-8]$");
     let regex5 = new RegExp("^[B|N|R|Q|K][a-h][1-8][a-h][1-8]$");
+    let regex8 = new RegExp("^[a-h]?[a-h][1-8]=[B|N|R|Q]$");
+
 
     if (regex1.test(pgnItem)) {
         return 1;
@@ -1394,6 +1429,8 @@ async function GetPgnType(pgnItem) {
         return 4;
     } else if (regex5.test(pgnItem)) {
         return 5;
+    } else if (regex8.test(pgnItem)) {
+        return 8;
     }
     return 0;
 }
