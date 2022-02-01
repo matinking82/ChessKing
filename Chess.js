@@ -17,6 +17,7 @@ let LastMoveStartSquare = null;
 let LastMoveEndSquare = null;
 const FileNames = [0, 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
 const PieceNames = [0, '', 'N', 'B', 'R', 'K', 'Q', '', 'N', 'B', 'R', 'K', 'Q']
+const FENPieceNames = [0, 'P', 'N', 'B', 'R', 'K', 'Q', 'p', 'n', 'b', 'r', 'k', 'q']
 let PGN = [];
 
 
@@ -39,6 +40,7 @@ $(document).ready(async function () {
     $('#ScoreBoard').css('width', ('%spx', BoardWidth));
     $('#ScoreBoard').css('height', ('%spx', BoardWidth / 5));
     $('#PgnBoard').css('width', ('%spx', BoardWidth));
+    $('.FENBoard').css('width', ('%spx', BoardWidth)); 
     $('#FlipBoard').click(FlipBoard);
     $('#RestartGame').click(RestartGame);
     $('#ShowPgnModal').click(ShowPgnModal);
@@ -345,6 +347,7 @@ async function MovePiece(startSquare, endSquare, castle = false, promote = null)
     }
 
     await ShowLastMove(startSquare, endSquare);
+    await UpdateFENBoard();
     return true;
 }
 
@@ -1006,6 +1009,13 @@ async function RestartGame() {
 async function StartGame() {
     await CreateBoard();
     await SetPieces();
+    await UpdateFENBoard();
+}
+
+async function UpdateFENBoard() {
+    let txt = await CreateFENText();
+    debugger;
+    $('#txtFENBoard').val(txt);
 }
 
 async function ShowLastMove(startSquare, endSquare) {
@@ -1446,9 +1456,63 @@ async function CopyToClipboard(copyText) {
     navigator.clipboard.writeText(copyText);
 }
 
-async function btnCopyPgnClicked(btn) {
+async function btnCopyPgnClicked() {
     let text = $('#PgnText').text();
     await CopyToClipboard(text);
 
     $("#btnCopyPgn").text('Copied!!');
 }
+
+async function CreateFENText() {
+    let FENText = '';
+    for (var i = 8; i >= 1; i--) {
+        let counter = 0;
+        for (var j = 1; j <= 8; j++) {
+            let sqr = Squares[j][i]
+            if (HasPiece(sqr)) {
+                if (counter > 0) {
+                    FENText = FENText + counter.toString();
+                    counter = 0;
+                }
+
+                let pieceId = await GetPieceId(sqr);
+                FENText += FENPieceNames[pieceId];
+
+            } else {
+                counter++;
+            }
+
+            if (j == 8 && counter > 0) {
+                FENText = FENText + counter.toString();
+            }
+        }
+        if (i > 1) {
+            FENText = FENText + '/';
+        }
+    }
+    if (WhitesTurn) {
+        FENText += ' w ';
+    } else {
+        FENText += ' b ';
+    }
+
+    if (WhiteShortCastle) {
+        FENText += 'K';
+    }
+    if (WhiteLongCastle) {
+        FENText += 'Q';
+    }
+    if (BlackShortCastle) {
+        FENText += 'k';
+    }
+    if (BlackLongCastle) {
+        FENText += 'q';
+    }
+
+    return FENText;
+}
+
+async function CreateBoardWithFEN(FEN) {
+    //TODO
+}
+

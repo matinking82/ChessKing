@@ -68,6 +68,7 @@ body {
 }
 .btn{
     border-radius:2px!important;
+    margin:5px auto;
 }
 
 #ScoreBoard{
@@ -95,4 +96,13 @@ body {
 #PgnBoard {
     min-height:200px;
     margin:20px auto;
+}
+
+.FENBoard{
+    margin:20px auto;
+    text-align:center;
+}
+#txtFENBoard{
+    width:90%;
+    margin:auto;
 }
