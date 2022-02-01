@@ -43,6 +43,8 @@ $(document).ready(async function () {
     $('#RestartGame').click(RestartGame);
     $('#ShowPgnModal').click(ShowPgnModal);
     $('#btnInsertPgn').click(btnInsertPgnClicked);
+    $("#btnCopyPgn").click(btnCopyPgnClicked);
+
     await StartGame();
 
 });
@@ -998,7 +1000,7 @@ async function RestartGame() {
 
     await StartGame()
 
-    console.log(WhitesTurn);
+    $("#btnCopyPgn").text('Copy');
 }
 
 async function StartGame() {
@@ -1188,7 +1190,6 @@ async function btnInsertPgnClicked() {
     pgnText = pgnText.replace(/\s+$/, '');
     pgnText = pgnText.replaceAll(/\s+/g, ' ');
 
-    console.log(pgnText);
     let pgntemp = pgnText.split(' ');
     let pgnArray = [];
 
@@ -1439,4 +1440,15 @@ async function CanMove(startSquare, endSquare) {
     let allowedSquares = await GetAllowedSquares(startSquare);
 
     return allowedSquares.includes(endSquare);
+}
+
+async function CopyToClipboard(copyText) {
+    navigator.clipboard.writeText(copyText);
+}
+
+async function btnCopyPgnClicked(btn) {
+    let text = $('#PgnText').text();
+    await CopyToClipboard(text);
+
+    $("#btnCopyPgn").text('Copied!!');
 }
