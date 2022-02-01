@@ -1170,6 +1170,7 @@ async function GetSquaresWithPieceId(PieceId) {
 }
 
 async function ShowPgnModal() {
+    $('#txtInsertPgn').val($('#PgnText').text());
     $('#InsertPgnModal').modal('show');
 }
 
