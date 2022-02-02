@@ -47,10 +47,23 @@ $(document).ready(function () {
     $('#btnInsertPgn').click(btnInsertPgnClicked);
     $("#btnCopyPgn").click(btnCopyPgnClicked);
     $('#btnInsertFEN').click(btnInsertFENClicked);
-
+    $('#txtNextMovePGN').on('keypress', function (e) {
+        if (e.which === 13) {
+            txtNextMovePGNEnter();
+        }
+    });;
     StartGame();
 
 });
+
+function txtNextMovePGNEnter() {
+
+    let pgnMove = $('#txtNextMovePGN').val();
+    $('#txtNextMovePGN').val('');
+
+    MoveWithPGN(pgnMove, WhitesTurn);
+    UpdateFENBoard();
+}
 
 function SetPieces() {
     let startFEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq';
@@ -946,7 +959,7 @@ function CheckPinAndReturn(square, allowedSquares) {
         .removeClass('ChessSquareFull');
 
     for (var i = 0; i < allowedSquares.length; i++) {
-        
+
         let sqr = allowedSquares[i];
 
         let isCheck;
@@ -1227,199 +1240,204 @@ function CreateBoardWithPgn(pgnArray = [''], untilMove = null) {
     for (var i = 0; i < pgnArray.length; i++) {
         let item = pgnArray[i];
 
+        let isSuccess = MoveWithPGN(item, (i % 2 == 0));
 
-        item = item.replace('+', '');
-        item = item.replace('#', '');
-        item = item.replace('x', '');
-        let pgnType = GetPgnType(item);
-        if (pgnType == 0) {
+        if (!isSuccess) {
             break;
         }
+    }
+}
 
-        let white = (i % 2 == 0);
-
-        let startSquare;
-        let endSquare;
-
-        if (pgnType !== 6 && pgnType !== 7 && pgnType !== 8) {
-            endSquare = Squares[FileNames.indexOf(item[item.length - 2])][parseInt(item[item.length - 1])];
-        }
-
-        let pieceId;
-        let squares;
-        let CanDo = true;
-
-
-        switch (pgnType) {
-            case 1://(example: e4 or ge4)
-                pieceId = 1;
-                if (!white) {
-                    pieceId = 7;
-                }
-
-                squares = $('[piece=' + pieceId + '][file=' + FileNames.indexOf(item[0]) + ']').toArray();
-
-                for (var j = 0; j < squares.length; j++) {
-                    let sqr = squares[j];
-
-                    if (CanMove(sqr, endSquare)) {
-                        startSquare = sqr
-                        break;
-                    }
-                }
-
-                break;
-
-            case 2://(example: Qd4)
-                
-                pieceId = PieceNames.indexOf(item[0]);
-                if (!white) {
-                    pieceId = pieceId + 6;
-                }
-
-                squares = $('[piece=' + pieceId + ']').toArray();
-
-                for (var j = 0; j < squares.length; j++) {
-                    let sqr = squares[j];
-
-                    if (CanMove(sqr, endSquare)) {
-                        startSquare = sqr
-                        break;
-                    }
-                }
-                break;
-
-            case 3://(example: Qbd4)
-                pieceId = PieceNames.indexOf(item[0]);
-                if (!white) {
-                    pieceId = pieceId + 6;
-                }
-
-                squares = $('[piece=' + pieceId + '][file=' + FileNames.indexOf(item[1]) + ']').toArray();
-
-                for (var j = 0; j < squares.length; j++) {
-                    let sqr = squares[j];
-
-                    if (CanMove(sqr, endSquare)) {
-                        startSquare = sqr
-                        break;
-                    }
-                }
-                break;
-
-            case 4://(example: Q3d4)
-                pieceId = PieceNames.indexOf(item[0]);
-                if (!white) {
-                    pieceId = pieceId + 6;
-                }
-
-                squares = $('[piece=' + pieceId + '][number=' + parseInt(item[1]) + ']').toArray();
-
-                for (var j = 0; j < squares.length; j++) {
-                    let sqr = squares[j];
-
-                    if (CanMove(sqr, endSquare)) {
-                        startSquare = sqr
-                        break;
-                    }
-                }
-                break;
-
-            case 5://(example: Qb3d4)
-                pieceId = PieceNames.indexOf(item[0]);
-                if (!white) {
-                    pieceId = pieceId + 6;
-                }
-
-                squares = $('[piece=' + pieceId + '][file=' + FileNames.indexOf(item[1]) + '][number=' + parseInt(item[2]) + ']').toArray();
-
-                for (var j = 0; j < squares.length; j++) {
-                    let sqr = squares[j];
-
-                    if (CanMove(sqr, endSquare)) {
-                        startSquare = sqr
-                        break;
-                    }
-                }
-                break;
-
-            case 6://O-O
-                if (white) {
-                    if (WhiteShortCastle) {
-                        let start = Squares[5][1];
-                        let end = Squares[7][1];
-                        if (CanMove(start, end)) {
-                            startSquare = start;
-                            endSquare = end;
-                        }
-                    }
-                } else {
-                    if (BlackShortCastle) {
-                        let start = Squares[5][8];
-                        let end = Squares[7][8];
-                        if (CanMove(start, end)) {
-                            startSquare = start;
-                            endSquare = end;
-                        }
-                    }
-                }
-                break;
-
-            case 7://O-O-O
-                if (white) {
-                    if (WhiteLongCastle) {
-                        let start = Squares[5][1];
-                        let end = Squares[3][1];
-                        if (CanMove(start, end)) {
-                            startSquare = start;
-                            endSquare = end;
-                        }
-                    }
-                } else {
-                    if (BlackLongCastle) {
-                        let start = Squares[5][8];
-                        let end = Squares[3][8];
-                        if (CanMove(start, end)) {
-                            startSquare = start;
-                            endSquare = end;
-                        }
-                    }
-                }
-                break;
-
-            case 8://e8=Q or fe8=Q
-                CanDo = false;
-                pieceId = 1;
-                if (!white) {
-                    pieceId = 7;
-                }
-
-                let temp = item.split('=');
-                endSquare = Squares[FileNames.indexOf(temp[0][temp[0].length - 2])][parseInt(temp[0][temp[0].length - 1])];
-
-                squares = $('[piece=' + pieceId + '][file=' + FileNames.indexOf(item[0]) + ']').toArray();
-
-                for (var j = 0; j < squares.length; j++) {
-                    let sqr = squares[j];
-
-                    if (CanMove(sqr, endSquare)) {
-                        startSquare = sqr;
-                        MovePiece(startSquare, endSquare, false, PieceNames.indexOf(temp[1]), false);
-                        break;
-                    }
-                }
-                break;
-        }
-
-        if (startSquare == null) {
-            break;
-        }
-        if (CanDo) {
-            MovePiece(startSquare, endSquare, false, null, false);
-        }
-
+function MoveWithPGN(item, white) {
+    item = item.replace('+', '');
+    item = item.replace('#', '');
+    item = item.replace('x', '');
+    let pgnType = GetPgnType(item);
+    if (pgnType == 0) {
+        return false;
     }
 
+    let startSquare;
+    let endSquare;
+
+    if (pgnType !== 6 && pgnType !== 7 && pgnType !== 8) {
+        endSquare = Squares[FileNames.indexOf(item[item.length - 2])][parseInt(item[item.length - 1])];
+    }
+
+    let pieceId;
+    let squares;
+    let CanDo = true;
+
+
+    switch (pgnType) {
+        case 1://(example: e4 or ge4)
+            pieceId = 1;
+            if (!white) {
+                pieceId = 7;
+            }
+
+            squares = $('[piece=' + pieceId + '][file=' + FileNames.indexOf(item[0]) + ']').toArray();
+
+            for (var j = 0; j < squares.length; j++) {
+                let sqr = squares[j];
+
+                if (CanMove(sqr, endSquare)) {
+                    startSquare = sqr
+                    break;
+                }
+            }
+
+            break;
+
+        case 2://(example: Qd4)
+
+            pieceId = PieceNames.indexOf(item[0]);
+            if (!white) {
+                pieceId = pieceId + 6;
+            }
+
+            squares = $('[piece=' + pieceId + ']').toArray();
+
+            for (var j = 0; j < squares.length; j++) {
+                let sqr = squares[j];
+
+                if (CanMove(sqr, endSquare)) {
+                    startSquare = sqr
+                    break;
+                }
+            }
+            break;
+
+        case 3://(example: Qbd4)
+            pieceId = PieceNames.indexOf(item[0]);
+            if (!white) {
+                pieceId = pieceId + 6;
+            }
+
+            squares = $('[piece=' + pieceId + '][file=' + FileNames.indexOf(item[1]) + ']').toArray();
+
+            for (var j = 0; j < squares.length; j++) {
+                let sqr = squares[j];
+
+                if (CanMove(sqr, endSquare)) {
+                    startSquare = sqr
+                    break;
+                }
+            }
+            break;
+
+        case 4://(example: Q3d4)
+            pieceId = PieceNames.indexOf(item[0]);
+            if (!white) {
+                pieceId = pieceId + 6;
+            }
+
+            squares = $('[piece=' + pieceId + '][number=' + parseInt(item[1]) + ']').toArray();
+
+            for (var j = 0; j < squares.length; j++) {
+                let sqr = squares[j];
+
+                if (CanMove(sqr, endSquare)) {
+                    startSquare = sqr
+                    break;
+                }
+            }
+            break;
+
+        case 5://(example: Qb3d4)
+            pieceId = PieceNames.indexOf(item[0]);
+            if (!white) {
+                pieceId = pieceId + 6;
+            }
+
+            squares = $('[piece=' + pieceId + '][file=' + FileNames.indexOf(item[1]) + '][number=' + parseInt(item[2]) + ']').toArray();
+
+            for (var j = 0; j < squares.length; j++) {
+                let sqr = squares[j];
+
+                if (CanMove(sqr, endSquare)) {
+                    startSquare = sqr
+                    break;
+                }
+            }
+            break;
+
+        case 6://O-O
+            if (white) {
+                if (WhiteShortCastle) {
+                    let start = Squares[5][1];
+                    let end = Squares[7][1];
+                    if (CanMove(start, end)) {
+                        startSquare = start;
+                        endSquare = end;
+                    }
+                }
+            } else {
+                if (BlackShortCastle) {
+                    let start = Squares[5][8];
+                    let end = Squares[7][8];
+                    if (CanMove(start, end)) {
+                        startSquare = start;
+                        endSquare = end;
+                    }
+                }
+            }
+            break;
+
+        case 7://O-O-O
+            if (white) {
+                if (WhiteLongCastle) {
+                    let start = Squares[5][1];
+                    let end = Squares[3][1];
+                    if (CanMove(start, end)) {
+                        startSquare = start;
+                        endSquare = end;
+                    }
+                }
+            } else {
+                if (BlackLongCastle) {
+                    let start = Squares[5][8];
+                    let end = Squares[3][8];
+                    if (CanMove(start, end)) {
+                        startSquare = start;
+                        endSquare = end;
+                    }
+                }
+            }
+            break;
+
+        case 8://e8=Q or fe8=Q
+            CanDo = false;
+            pieceId = 1;
+            if (!white) {
+                pieceId = 7;
+            }
+
+            let temp = item.split('=');
+            endSquare = Squares[FileNames.indexOf(temp[0][temp[0].length - 2])][parseInt(temp[0][temp[0].length - 1])];
+
+            squares = $('[piece=' + pieceId + '][file=' + FileNames.indexOf(item[0]) + ']').toArray();
+
+            for (var j = 0; j < squares.length; j++) {
+                let sqr = squares[j];
+
+                if (CanMove(sqr, endSquare)) {
+                    startSquare = sqr;
+                    MovePiece(startSquare, endSquare, false, PieceNames.indexOf(temp[1]), false);
+                    break;
+                }
+            }
+            break;
+    }
+
+    if (startSquare == null) {
+        return false;
+    }
+    if (CanDo) {
+        MovePiece(startSquare, endSquare, false, null, false);
+    }
+
+    return true;
 }
 
 function GetPgnType(pgnItem) {
