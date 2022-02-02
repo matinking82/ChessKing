@@ -21,7 +21,7 @@ const FENPieceNames = [0, 'P', 'N', 'B', 'R', 'K', 'Q', 'p', 'n', 'b', 'r', 'k',
 let PGN = [];
 
 
-$(document).ready(async function () {
+$(document).ready(function () {
     mainHeight = $(document).innerHeight();
     mainWidth = $(document).innerWidth();
     if (mainHeight > mainWidth) {
@@ -48,15 +48,14 @@ $(document).ready(async function () {
     $("#btnCopyPgn").click(btnCopyPgnClicked);
     $('#btnInsertFEN').click(btnInsertFENClicked);
 
-    await StartGame();
+    StartGame();
 
 });
 
-async function SetPieces() {
-    debugger;
+function SetPieces() {
     let startFEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq';
 
-    await CreateBoardWithFEN(startFEN);
+    CreateBoardWithFEN(startFEN);
 
     ////White Pieces
     //ChangeSquareImage(Squares[1][2], 1);
@@ -97,8 +96,8 @@ async function SetPieces() {
     //ChangeSquareImage(Squares[4][8], 12);
 }
 
-async function CreateBoard() {
-    await ClearBoard();
+function CreateBoard() {
+    ClearBoard();
     let Color1 = false;
     for (let f = 1; f <= 8; f++) {
         let file = [0];
@@ -116,8 +115,8 @@ async function CreateBoard() {
                     "left": (f - 1) * SquareWidth,
                     "top": SquareWidth * (8 - n)
                 }).addClass("ChessSquare")
-                .click(async function () {
-                    await clickSquare(this);
+                .click(function () {
+                    clickSquare(this);
                 });
 
             if (Color1) {
@@ -136,7 +135,7 @@ async function CreateBoard() {
     }
 }
 
-async function clickSquare(square) {
+function clickSquare(square) {
     if (SelectedSquare === null) {
         if ($(square).hasClass('ChessSquareFull')) {
             if (IsWhite(square) === WhitesTurn) {
@@ -146,11 +145,11 @@ async function clickSquare(square) {
     } else {
         let squareToMove = SelectedSquare;
         if (square != squareToMove) {
-            let IsSuccess = await MovePiece(squareToMove, square);
+            let IsSuccess = MovePiece(squareToMove, square);
             if (!IsSuccess) {
                 return;
             }
-            //await FlipBoard();
+            // FlipBoard();
         }
         UnSelectSquare(squareToMove);
         SelectedSquare = null;
@@ -163,19 +162,19 @@ function IsFriend(square1, square2) {
     return (piece1 <= 6 && piece2 <= 6) || (piece1 > 6 && piece2 > 6);
 }
 
-async function UnSelectSquare(square) {
+function UnSelectSquare(square) {
     $(square).removeClass('SquareSelected');
     AllowedSquares = [];
 
     RemoveHighLightedSquares();
 }
 
-async function RemoveHighLightedSquares() {
+function RemoveHighLightedSquares() {
     $('.AllowedSquare1').removeClass('AllowedSquare1');
     $('.AllowedSquare2').removeClass('AllowedSquare2');
 }
 
-async function HighLightSquare(square) {
+function HighLightSquare(square) {
     if ($(square).hasClass('SquareColor1')) {
         $(square).addClass('AllowedSquare1');
     } else {
@@ -183,10 +182,10 @@ async function HighLightSquare(square) {
     }
 }
 
-async function SelectSquare(square) {
+function SelectSquare(square) {
     SelectedSquare = square;
     $(square).addClass('SquareSelected');
-    AllowedSquares = await GetAllowedSquares(square);
+    AllowedSquares = GetAllowedSquares(square);
     for (var i = 0; i < AllowedSquares.length; i++) {
         let item = AllowedSquares[i];
 
@@ -198,7 +197,7 @@ async function SelectSquare(square) {
     }
 }
 
-async function ChangeSquareImage(square, piece) {
+function ChangeSquareImage(square, piece) {
     EmptySquare(square);
     let img = document.createElement('img');
     img.src = ("Pieces/" + piece + ".png");
@@ -207,7 +206,7 @@ async function ChangeSquareImage(square, piece) {
         .addClass('ChessSquareFull');
 }
 
-async function EmptySquare(square) {
+function EmptySquare(square) {
 
     $(square).text('')
         .removeAttr("piece")
@@ -215,16 +214,16 @@ async function EmptySquare(square) {
 
 }
 
-async function MovePiece(startSquare, endSquare, castle = false, promote = null) {
+function MovePiece(startSquare, endSquare, castle = false, promote = null, UpdateFEN = true) {
     if (HasPiece(endSquare)) {
         if (IsFriend(startSquare, endSquare)) {
-            await UnSelectSquare(startSquare);
-            await SelectSquare(endSquare);
+            UnSelectSquare(startSquare);
+            SelectSquare(endSquare);
             return false;
         }
     }
 
-    if (!(await CanMove(startSquare, endSquare))) {
+    if (!(CanMove(startSquare, endSquare))) {
         return false;
     }
 
@@ -243,11 +242,11 @@ async function MovePiece(startSquare, endSquare, castle = false, promote = null)
     if (piece == 5) {
 
         if (endfile == 7 && WhiteShortCastle) {
-            await MovePiece(Squares[8][1], Squares[6][1], true);
+            MovePiece(Squares[8][1], Squares[6][1], true, null, false);
             ChangeTurn();
         }
         if (endfile == 3 && WhiteLongCastle) {
-            await MovePiece(Squares[1][1], Squares[4][1], true);
+            MovePiece(Squares[1][1], Squares[4][1], true, null, false);
             ChangeTurn();
         }
 
@@ -259,11 +258,11 @@ async function MovePiece(startSquare, endSquare, castle = false, promote = null)
     if (piece == 11) {
 
         if (endfile == 7 && BlackShortCastle) {
-            await MovePiece(Squares[8][8], Squares[6][8], true);
+            MovePiece(Squares[8][8], Squares[6][8], true);
             ChangeTurn();
         }
         if (endfile == 3 && BlackLongCastle) {
-            await MovePiece(Squares[1][8], Squares[4][8], true);
+            MovePiece(Squares[1][8], Squares[4][8], true);
             ChangeTurn();
         }
 
@@ -318,9 +317,9 @@ async function MovePiece(startSquare, endSquare, castle = false, promote = null)
     }
 
 
-    await EmptySquare(startSquare);
-    await ChangeSquareImage(endSquare, piece);
-    await ChangeTurn()
+    EmptySquare(startSquare);
+    ChangeSquareImage(endSquare, piece);
+    ChangeTurn()
 
     //Promote
     let promoteName = null;
@@ -338,43 +337,45 @@ async function MovePiece(startSquare, endSquare, castle = false, promote = null)
             }
         }
 
-        await Promote(endSquare, promoteTo);
+        Promote(endSquare, promoteTo);
         promoteName = PieceNames[promoteTo];
     }
 
     if (!castle) {
-        await AddPGN(startSquare, endSquare, takes, promoteName);
+        AddPGN(startSquare, endSquare, takes, promoteName);
     }
-    let isCheck = await IsCheck(WhitesTurn);
+    let isCheck = IsCheck(WhitesTurn);
     if (isCheck) {
         Check(WhitesTurn);
     } else {
-        //await PlayAudio('SFX/MovePiece.wav');
+        // PlayAudio('SFX/MovePiece.wav');
     }
 
-    await ShowLastMove(startSquare, endSquare);
-    await UpdateFENBoard();
+    ShowLastMove(startSquare, endSquare);
+    if (UpdateFEN) {
+        UpdateFENBoard();
+    }
     return true;
 }
 
-async function Promote(square, PromoteId) {
-    await ChangeSquareImage(square, PromoteId);
+function Promote(square, PromoteId) {
+    ChangeSquareImage(square, PromoteId);
 }
 
-async function Check(White = true) {
-    if (!(await HasMoves(White))) {
-        await Mate(White);
+function Check(White = true) {
+    if (!(HasMoves(White))) {
+        Mate(White);
     } else {
-        await PlayAudio('SFX/Check.wav');
+        PlayAudio('SFX/Check.wav');
     }
 }
 
-async function HasMoves(White = true) {
-    let Pieces = await GetPieces(White);
+function HasMoves(White = true) {
+    let Pieces = GetPieces(White);
 
     for (var i = 0; i < Pieces.length; i++) {
         let piece = Pieces[i];
-        let allowedSquares = await GetAllowedSquares(piece);
+        let allowedSquares = GetAllowedSquares(piece);
 
         if (allowedSquares.length !== 0) {
             return true;
@@ -384,15 +385,14 @@ async function HasMoves(White = true) {
     return false;
 }
 
-async function Mate(White = true) {
+function Mate(White = true) {
 
-    await PlayAudio('SFX/Mate.wav');
+    PlayAudio('SFX/Mate.wav');
 
-    await AddScore(!White)
+    AddScore(!White)
 }
 
-async function AddScore(White = true) {
-    debugger;
+function AddScore(White = true) {
     if (White) {
         WhiteScore++;
         $('#WhiteScoreNumber').text(WhiteScore);
@@ -403,7 +403,7 @@ async function AddScore(White = true) {
     }
 }
 
-async function FlipBoard() {
+function FlipBoard() {
     if ($('.ChessBoard').hasClass('FlipBoard')) {
         $('.ChessBoard').removeClass('FlipBoard')
     } else {
@@ -420,51 +420,51 @@ function HasPiece(square) {
     return $(square).attr('piece') != null;
 }
 
-async function ChangeTurn() {
+function ChangeTurn() {
     WhitesTurn = !WhitesTurn;
 }
 
-async function GetAllowedSquares(square) {
+function GetAllowedSquares(square) {
     let piece = parseInt($(square).attr('piece'));
 
     let returnSquares = [];
 
     switch (piece) {
         case 1://pawn
-            returnSquares = await PawnAllowedSquares(square);
+            returnSquares = PawnAllowedSquares(square);
             break;
         case 2://knight
-            returnSquares = await KnightAllowedSquares(square);
+            returnSquares = KnightAllowedSquares(square);
             break;
         case 3://bishap
-            returnSquares = await BishopAllowedSquares(square);
+            returnSquares = BishopAllowedSquares(square);
             break;
         case 4://rook
-            returnSquares = await RookAllowedSquares(square);
+            returnSquares = RookAllowedSquares(square);
             break;
         case 5://king
-            returnSquares = await KingAllowedSquares(square);
+            returnSquares = KingAllowedSquares(square);
             break;
         case 6://queen
-            returnSquares = await QueenAllowedSquares(square);
+            returnSquares = QueenAllowedSquares(square);
             break;
         case 7://pawn
-            returnSquares = await PawnAllowedSquares(square);
+            returnSquares = PawnAllowedSquares(square);
             break;
         case 8://knight
-            returnSquares = await KnightAllowedSquares(square);
+            returnSquares = KnightAllowedSquares(square);
             break;
         case 9://bishap
-            returnSquares = await BishopAllowedSquares(square);
+            returnSquares = BishopAllowedSquares(square);
             break;
         case 10://rook
-            returnSquares = await RookAllowedSquares(square);
+            returnSquares = RookAllowedSquares(square);
             break;
         case 11://king
-            returnSquares = await KingAllowedSquares(square);
+            returnSquares = KingAllowedSquares(square);
             break;
         case 12://queen
-            returnSquares = await QueenAllowedSquares(square);
+            returnSquares = QueenAllowedSquares(square);
             break;
     }
 
@@ -474,7 +474,7 @@ async function GetAllowedSquares(square) {
     return returnSquares;
 }
 
-async function PawnAllowedSquares(square) {
+function PawnAllowedSquares(square) {
     let allowedList = [];
     let file = parseInt($(square).attr('file'));
     let number = parseInt($(square).attr('number'));
@@ -517,7 +517,7 @@ async function PawnAllowedSquares(square) {
     return allowedList;
 }
 
-async function GetPawnAtackedSquares(square) {
+function GetPawnAtackedSquares(square) {
     let AtackedSquareList = [];
     let file = parseInt($(square).attr('file'));
     let number = parseInt($(square).attr('number'));
@@ -540,7 +540,7 @@ async function GetPawnAtackedSquares(square) {
     return AtackedSquareList;
 }
 
-async function KnightAllowedSquares(square, atack = false) {
+function KnightAllowedSquares(square, atack = false) {
     let allowedList = [];
     let file = parseInt($(square).attr('file'));
     let number = parseInt($(square).attr('number'));
@@ -574,13 +574,13 @@ async function KnightAllowedSquares(square, atack = false) {
     return allowedList;
 }
 
-async function BishopAllowedSquares(square, atack = false) {
+function BishopAllowedSquares(square, atack = false) {
     let allowedList = [];
     let temp = [];
-    temp.push(await GetDiagonalAllowed(1, 1, square, atack));
-    temp.push(await GetDiagonalAllowed(-1, 1, square, atack));
-    temp.push(await GetDiagonalAllowed(1, -1, square, atack));
-    temp.push(await GetDiagonalAllowed(-1, -1, square, atack));
+    temp.push(GetDiagonalAllowed(1, 1, square, atack));
+    temp.push(GetDiagonalAllowed(-1, 1, square, atack));
+    temp.push(GetDiagonalAllowed(1, -1, square, atack));
+    temp.push(GetDiagonalAllowed(-1, -1, square, atack));
 
     for (var i = 0; i < temp.length; i++) {
         let list = temp[i];
@@ -594,7 +594,7 @@ async function BishopAllowedSquares(square, atack = false) {
     return allowedList;
 }
 
-async function GetDiagonalAllowed(unit1, unit2, square, atack = false) {
+function GetDiagonalAllowed(unit1, unit2, square, atack = false) {
     let allowedList = [];
     let file = parseInt($(square).attr('file'));
     let number = parseInt($(square).attr('number'));
@@ -629,7 +629,7 @@ async function GetDiagonalAllowed(unit1, unit2, square, atack = false) {
     return allowedList;
 }
 
-async function GetVerticalAllowed(square, atack = false) {
+function GetVerticalAllowed(square, atack = false) {
     let allowedList = [];
     let file = parseInt($(square).attr('file'));
     let number = parseInt($(square).attr('number'));
@@ -733,20 +733,20 @@ async function GetVerticalAllowed(square, atack = false) {
     return allowedList;
 }
 
-async function RookAllowedSquares(square, atack = false) {
-    return await GetVerticalAllowed(square, atack);
+function RookAllowedSquares(square, atack = false) {
+    return GetVerticalAllowed(square, atack);
 }
 
-async function KingAllowedSquares(square) {
+function KingAllowedSquares(square) {
     let allowedList = [];
     let file = parseInt($(square).attr('file'));
     let number = parseInt($(square).attr('number'));
 
     let enemyAtackedSquares;
     if (IsWhite(square)) {
-        enemyAtackedSquares = await GetAtackedSquares(false);
+        enemyAtackedSquares = GetAtackedSquares(false);
     } else {
-        enemyAtackedSquares = await GetAtackedSquares(true);
+        enemyAtackedSquares = GetAtackedSquares(true);
     }
 
     for (var i = file - 1; i <= file + 1; i++) {
@@ -771,7 +771,7 @@ async function KingAllowedSquares(square) {
 
     //castling
     if (IsWhite(square)) {
-        if (!(await IsCheck(true))) {
+        if (!(IsCheck(true))) {
             if (WhiteShortCastle) {
                 if (!HasPiece(Squares[6][1]) && !HasPiece(Squares[7][1])
                     && !enemyAtackedSquares.includes(Squares[6][1])
@@ -791,7 +791,7 @@ async function KingAllowedSquares(square) {
             }
         }
     } else {
-        if (!(await IsCheck(false))) {
+        if (!(IsCheck(false))) {
             if (BlackShortCastle) {
                 if (!HasPiece(Squares[6][8]) && !HasPiece(Squares[7][8])
                     && !enemyAtackedSquares.includes(Squares[6][8])
@@ -815,7 +815,7 @@ async function KingAllowedSquares(square) {
     return allowedList;
 }
 
-async function GetKingAtackedSquares(square) {
+function GetKingAtackedSquares(square) {
 
     let allowedList = [];
     let file = parseInt($(square).attr('file'));
@@ -838,14 +838,14 @@ async function GetKingAtackedSquares(square) {
 
 }
 
-async function QueenAllowedSquares(square, atack = false) {
+function QueenAllowedSquares(square, atack = false) {
     let allowedList = [];
     let temp = [];
-    temp.push(await GetDiagonalAllowed(1, 1, square, atack));
-    temp.push(await GetDiagonalAllowed(-1, 1, square, atack));
-    temp.push(await GetDiagonalAllowed(1, -1, square, atack));
-    temp.push(await GetDiagonalAllowed(-1, -1, square, atack));
-    temp.push(await GetVerticalAllowed(square, atack));
+    temp.push(GetDiagonalAllowed(1, 1, square, atack));
+    temp.push(GetDiagonalAllowed(-1, 1, square, atack));
+    temp.push(GetDiagonalAllowed(1, -1, square, atack));
+    temp.push(GetDiagonalAllowed(-1, -1, square, atack));
+    temp.push(GetVerticalAllowed(square, atack));
 
     for (var i = 0; i < temp.length; i++) {
         let list = temp[i];
@@ -863,7 +863,7 @@ function GetPieceId(square) {
     return parseInt($(square).attr('piece'));
 }
 
-async function GetPieces(White = true) {
+function GetPieces(White = true) {
     let pieces = [];
     let allPieces = $('.ChessSquareFull').toArray();
 
@@ -878,8 +878,8 @@ async function GetPieces(White = true) {
     return pieces;
 }
 
-async function GetAtackedSquares(White = true) {
-    let pieces = await GetPieces(White);
+function GetAtackedSquares(White = true) {
+    let pieces = GetPieces(White);
     let atackedList = [];
 
     for (var i = 0; i < pieces.length; i++) {
@@ -887,17 +887,17 @@ async function GetAtackedSquares(White = true) {
         let pieceId = GetPieceId(item);
         let atacked = [];
         if (pieceId == 1 || pieceId == 7) {
-            atacked = await GetPawnAtackedSquares(item);
+            atacked = GetPawnAtackedSquares(item);
         } else if (pieceId == 2 || pieceId == 8) {
-            atacked = await KnightAllowedSquares(item, true);
+            atacked = KnightAllowedSquares(item, true);
         } else if (pieceId == 3 || pieceId == 9) {
-            atacked = await BishopAllowedSquares(item, true);
+            atacked = BishopAllowedSquares(item, true);
         } else if (pieceId == 4 || pieceId == 10) {
-            atacked = await RookAllowedSquares(item, true);
+            atacked = RookAllowedSquares(item, true);
         } else if (pieceId == 5 || pieceId == 11) {
-            atacked = await GetKingAtackedSquares(item);
+            atacked = GetKingAtackedSquares(item);
         } else if (pieceId == 6 || pieceId == 12) {
-            atacked = await QueenAllowedSquares(item, true);
+            atacked = QueenAllowedSquares(item, true);
         }
 
         for (var j = 0; j < atacked.length; j++) {
@@ -912,8 +912,8 @@ async function GetAtackedSquares(White = true) {
     return atackedList;
 }
 
-async function IsCheck(White = true) {
-    let atackedSquares = await GetAtackedSquares(!White);
+function IsCheck(White = true) {
+    let atackedSquares = GetAtackedSquares(!White);
 
     let kingId = 5;
     if (!White) {
@@ -935,9 +935,9 @@ async function IsCheck(White = true) {
     return false;
 }
 
-async function CheckPinAndReturn(square, allowedSquares) {
+function CheckPinAndReturn(square, allowedSquares) {
     let returnSquares = [];
-    let pieceId = await GetPieceId(square);
+    let pieceId = GetPieceId(square);
 
     let isWhite = IsWhite(square);
 
@@ -946,7 +946,9 @@ async function CheckPinAndReturn(square, allowedSquares) {
         .removeClass('ChessSquareFull');
 
     for (var i = 0; i < allowedSquares.length; i++) {
-
+        if (square == Squares[4][8] && pieceId == 10 && PGN.length == 77) {
+            debugger;
+        }
 
         let sqr = allowedSquares[i];
 
@@ -957,7 +959,7 @@ async function CheckPinAndReturn(square, allowedSquares) {
             let sqrPieceId = GetPieceId(sqr);
             $(sqr)
                 .attr('piece', pieceId);
-            isCheck = await IsCheck(isWhite);
+            isCheck = IsCheck(isWhite);
             $(sqr)
                 .attr("piece", sqrPieceId);
 
@@ -965,8 +967,11 @@ async function CheckPinAndReturn(square, allowedSquares) {
 
             $(sqr).attr('piece', pieceId)
                 .addClass('ChessSquareFull');
+            try {
+                isCheck = IsCheck(isWhite);
+            } catch (e) {
 
-            isCheck = await IsCheck(isWhite);
+            }
             $(sqr)
                 .removeAttr("piece")
                 .removeClass('ChessSquareFull');
@@ -984,14 +989,14 @@ async function CheckPinAndReturn(square, allowedSquares) {
     return returnSquares;
 }
 
-async function ClearBoard() {
+function ClearBoard() {
     $(".ChessBoard").text('');
     Squares = [0];
 }
 
-async function RestartGame() {
+function RestartGame() {
     if (SelectedSquare !== null) {
-        await UnSelectSquare(SelectedSquare);
+        UnSelectSquare(SelectedSquare);
         SelectedSquare = null;
     }
     WhitesTurn = true;
@@ -1004,27 +1009,26 @@ async function RestartGame() {
     LastMoveStartSquare = null;
     LastMoveEndSquare = null;
     PGN = [];
-    await UpdatePgnBoard();
+    UpdatePgnBoard();
     Squares = [0];
 
-    await StartGame()
+    StartGame()
 
     $("#btnCopyPgn").text('Copy');
 }
 
-async function StartGame() {
-    await CreateBoard();
-    await SetPieces();
-    //await UpdateFENBoard();
+function StartGame() {
+    CreateBoard();
+    SetPieces();
+    // UpdateFENBoard();
 }
 
-async function UpdateFENBoard() {
-    let txt = await CreateFENText();
-    debugger;
+function UpdateFENBoard() {
+    let txt = CreateFENText();
     $('#txtFENBoard').val(txt);
 }
 
-async function ShowLastMove(startSquare, endSquare) {
+function ShowLastMove(startSquare, endSquare) {
     if (LastMoveStartSquare !== null) {
         $(LastMoveStartSquare).removeClass('LastMoveSquare');
     }
@@ -1039,22 +1043,22 @@ async function ShowLastMove(startSquare, endSquare) {
     $(LastMoveStartSquare).addClass('LastMoveSquare');
 }
 
-async function PlayAudio(addres) {
+function PlayAudio(addres) {
     let myAudio = new Audio(addres);
     myAudio.play();
 }
 
-async function AddPGN(startSquare, endSquare, takes, promote = null) {
+function AddPGN(startSquare, endSquare, takes, promote = null) {
 
-    let pgnMove = await CreatePGNMove(startSquare, endSquare, takes, promote);
+    let pgnMove = CreatePGNMove(startSquare, endSquare, takes, promote);
 
     PGN.push(pgnMove);
 
-    await UpdatePgnBoard();
+    UpdatePgnBoard();
 
 };
 
-async function CreatePGNMove(startSquare, endSquare, takes, promote = null) {
+function CreatePGNMove(startSquare, endSquare, takes, promote = null) {
     let startFile = parseInt($(startSquare).attr('file'));
     let startNumber = parseInt($(startSquare).attr('number'));
     let endFile = parseInt($(endSquare).attr('file'));
@@ -1064,7 +1068,7 @@ async function CreatePGNMove(startSquare, endSquare, takes, promote = null) {
     let midPgn = '';
     let endPgn = FileNames[endFile] + endNumber.toString();
 
-    let PieceId = await GetPieceId(endSquare);
+    let PieceId = GetPieceId(endSquare);
 
 
     if (PieceId == 5 || PieceId == 11) {
@@ -1084,7 +1088,7 @@ async function CreatePGNMove(startSquare, endSquare, takes, promote = null) {
     } else {
         startPgn = PieceNames[PieceId];
 
-        let otherPieces = await GetSquaresWithPieceId(PieceId);
+        let otherPieces = GetSquaresWithPieceId(PieceId);
         if (otherPieces.length > 1) {
 
             let otherAllowed = [];
@@ -1097,13 +1101,13 @@ async function CreatePGNMove(startSquare, endSquare, takes, promote = null) {
                 let allowed;
 
                 if (PieceId == 2 || PieceId == 8) {
-                    allowed = await KnightAllowedSquares(item, true);
+                    allowed = KnightAllowedSquares(item, true);
                 } else if (PieceId == 3 || PieceId == 9) {
-                    allowed = await BishopAllowedSquares(item, true);
+                    allowed = BishopAllowedSquares(item, true);
                 } else if (PieceId == 4 || PieceId == 10) {
-                    allowed = await RookAllowedSquares(item, true);
+                    allowed = RookAllowedSquares(item, true);
                 } else if (PieceId == 6 || PieceId == 12) {
-                    allowed = await QueenAllowedSquares(item, true);
+                    allowed = QueenAllowedSquares(item, true);
                 }
 
 
@@ -1156,8 +1160,8 @@ async function CreatePGNMove(startSquare, endSquare, takes, promote = null) {
 
     let returnPgn = startPgn + midPgn + endPgn;
 
-    if (await IsCheck(!IsWhite(endSquare))) {
-        if (!(await HasMoves(!IsWhite(endSquare)))) {
+    if (IsCheck(!IsWhite(endSquare))) {
+        if (!(HasMoves(!IsWhite(endSquare)))) {
             returnPgn = returnPgn + '#';
         } else {
             returnPgn = returnPgn + '+';
@@ -1168,7 +1172,7 @@ async function CreatePGNMove(startSquare, endSquare, takes, promote = null) {
     return returnPgn;
 }
 
-async function UpdatePgnBoard() {
+function UpdatePgnBoard() {
     let pgnText = '';
 
     let counter = 1;
@@ -1187,22 +1191,22 @@ async function UpdatePgnBoard() {
     $('#PgnText').text(pgnText);
 }
 
-async function GetSquaresWithPieceId(PieceId) {
+function GetSquaresWithPieceId(PieceId) {
     return $('[piece=' + PieceId + ']').toArray();
 }
 
-async function ShowPgnModal() {
+function ShowPgnModal() {
     $('#txtInsertPgn').val($('#PgnText').text());
     $('#InsertPgnModal').modal('show');
 }
 
-async function btnInsertPgnClicked() {
+function btnInsertPgnClicked() {
     $('#InsertPgnModal').modal('hide');
 
     let pgnText = $('#txtInsertPgn').val();
     $('#txtInsertPgn').val('');
 
-    pgnText = await FixText(pgnText);
+    pgnText = FixText(pgnText);
 
     let pgntemp = pgnText.split(' ');
     let pgnArray = [];
@@ -1216,12 +1220,13 @@ async function btnInsertPgnClicked() {
     }
 
     CreateBoardWithPgn(pgnArray);
+
+    UpdateFENBoard();
 }
 
-async function CreateBoardWithPgn(pgnArray = [''], untilMove = null) {
-    await RestartGame();
+function CreateBoardWithPgn(pgnArray = [''], untilMove = null) {
+    RestartGame();
 
-    debugger;
     for (var i = 0; i < pgnArray.length; i++) {
         let item = pgnArray[i];
 
@@ -1229,7 +1234,7 @@ async function CreateBoardWithPgn(pgnArray = [''], untilMove = null) {
         item = item.replace('+', '');
         item = item.replace('#', '');
         item = item.replace('x', '');
-        let pgnType = await GetPgnType(item);
+        let pgnType = GetPgnType(item);
         if (pgnType == 0) {
             break;
         }
@@ -1260,7 +1265,7 @@ async function CreateBoardWithPgn(pgnArray = [''], untilMove = null) {
                 for (var j = 0; j < squares.length; j++) {
                     let sqr = squares[j];
 
-                    if (await CanMove(sqr, endSquare)) {
+                    if (CanMove(sqr, endSquare)) {
                         startSquare = sqr
                         break;
                     }
@@ -1269,6 +1274,9 @@ async function CreateBoardWithPgn(pgnArray = [''], untilMove = null) {
                 break;
 
             case 2://(example: Qd4)
+                if (item == 'Re8') {
+                    debugger;
+                }
                 pieceId = PieceNames.indexOf(item[0]);
                 if (!white) {
                     pieceId = pieceId + 6;
@@ -1279,7 +1287,7 @@ async function CreateBoardWithPgn(pgnArray = [''], untilMove = null) {
                 for (var j = 0; j < squares.length; j++) {
                     let sqr = squares[j];
 
-                    if (await CanMove(sqr, endSquare)) {
+                    if (CanMove(sqr, endSquare)) {
                         startSquare = sqr
                         break;
                     }
@@ -1297,7 +1305,7 @@ async function CreateBoardWithPgn(pgnArray = [''], untilMove = null) {
                 for (var j = 0; j < squares.length; j++) {
                     let sqr = squares[j];
 
-                    if (await CanMove(sqr, endSquare)) {
+                    if (CanMove(sqr, endSquare)) {
                         startSquare = sqr
                         break;
                     }
@@ -1315,7 +1323,7 @@ async function CreateBoardWithPgn(pgnArray = [''], untilMove = null) {
                 for (var j = 0; j < squares.length; j++) {
                     let sqr = squares[j];
 
-                    if (await CanMove(sqr, endSquare)) {
+                    if (CanMove(sqr, endSquare)) {
                         startSquare = sqr
                         break;
                     }
@@ -1333,7 +1341,7 @@ async function CreateBoardWithPgn(pgnArray = [''], untilMove = null) {
                 for (var j = 0; j < squares.length; j++) {
                     let sqr = squares[j];
 
-                    if (await CanMove(sqr, endSquare)) {
+                    if (CanMove(sqr, endSquare)) {
                         startSquare = sqr
                         break;
                     }
@@ -1345,7 +1353,7 @@ async function CreateBoardWithPgn(pgnArray = [''], untilMove = null) {
                     if (WhiteShortCastle) {
                         let start = Squares[5][1];
                         let end = Squares[7][1];
-                        if (await CanMove(start, end)) {
+                        if (CanMove(start, end)) {
                             startSquare = start;
                             endSquare = end;
                         }
@@ -1354,7 +1362,7 @@ async function CreateBoardWithPgn(pgnArray = [''], untilMove = null) {
                     if (BlackShortCastle) {
                         let start = Squares[5][8];
                         let end = Squares[7][8];
-                        if (await CanMove(start, end)) {
+                        if (CanMove(start, end)) {
                             startSquare = start;
                             endSquare = end;
                         }
@@ -1367,7 +1375,7 @@ async function CreateBoardWithPgn(pgnArray = [''], untilMove = null) {
                     if (WhiteLongCastle) {
                         let start = Squares[5][1];
                         let end = Squares[3][1];
-                        if (await CanMove(start, end)) {
+                        if (CanMove(start, end)) {
                             startSquare = start;
                             endSquare = end;
                         }
@@ -1376,7 +1384,7 @@ async function CreateBoardWithPgn(pgnArray = [''], untilMove = null) {
                     if (BlackLongCastle) {
                         let start = Squares[5][8];
                         let end = Squares[3][8];
-                        if (await CanMove(start, end)) {
+                        if (CanMove(start, end)) {
                             startSquare = start;
                             endSquare = end;
                         }
@@ -1399,9 +1407,9 @@ async function CreateBoardWithPgn(pgnArray = [''], untilMove = null) {
                 for (var j = 0; j < squares.length; j++) {
                     let sqr = squares[j];
 
-                    if (await CanMove(sqr, endSquare)) {
+                    if (CanMove(sqr, endSquare)) {
                         startSquare = sqr;
-                        await MovePiece(startSquare, endSquare, false, PieceNames.indexOf(temp[1]));
+                        MovePiece(startSquare, endSquare, false, PieceNames.indexOf(temp[1]), false);
                         break;
                     }
                 }
@@ -1412,13 +1420,14 @@ async function CreateBoardWithPgn(pgnArray = [''], untilMove = null) {
             break;
         }
         if (CanDo) {
-            await MovePiece(startSquare, endSquare);
+            MovePiece(startSquare, endSquare, false, null, false);
         }
 
     }
+
 }
 
-async function GetPgnType(pgnItem) {
+function GetPgnType(pgnItem) {
 
     if (pgnItem == 'O-O') {
         return 6;
@@ -1450,24 +1459,24 @@ async function GetPgnType(pgnItem) {
     return 0;
 }
 
-async function CanMove(startSquare, endSquare) {
-    let allowedSquares = await GetAllowedSquares(startSquare);
+function CanMove(startSquare, endSquare) {
+    let allowedSquares = GetAllowedSquares(startSquare);
 
     return allowedSquares.includes(endSquare);
 }
 
-async function CopyToClipboard(copyText) {
+function CopyToClipboard(copyText) {
     navigator.clipboard.writeText(copyText);
 }
 
-async function btnCopyPgnClicked() {
+function btnCopyPgnClicked() {
     let text = $('#PgnText').text();
-    await CopyToClipboard(text);
+    CopyToClipboard(text);
 
     $("#btnCopyPgn").text('Copied!!');
 }
 
-async function CreateFENText() {
+function CreateFENText() {
     let FENText = '';
     for (var i = 8; i >= 1; i--) {
         let counter = 0;
@@ -1479,7 +1488,7 @@ async function CreateFENText() {
                     counter = 0;
                 }
 
-                let pieceId = await GetPieceId(sqr);
+                let pieceId = GetPieceId(sqr);
                 FENText += FENPieceNames[pieceId];
 
             } else {
@@ -1494,6 +1503,7 @@ async function CreateFENText() {
             FENText = FENText + '/';
         }
     }
+
     if (WhitesTurn) {
         FENText += ' w ';
     } else {
@@ -1516,28 +1526,26 @@ async function CreateFENText() {
     return FENText;
 }
 
-async function ClearPieces() {
+function ClearPieces() {
     let temp = $('.ChessSquareFull').toArray();
     for (var i = 0; i < temp.length; i++) {
         let item = temp[i];
 
-        await EmptySquare(item);
+        EmptySquare(item);
     }
 }
 
-async function btnInsertFENClicked() {
+function btnInsertFENClicked() {
     let FENText = $('#txtFENBoard').val();
 
-    await CreateBoardWithFEN(FENText);
+    CreateBoardWithFEN(FENText);
 
-    await UpdateFENBoard();
+    UpdateFENBoard();
 }
 
-async function CreateBoardWithFEN(FEN = '') {
-    debugger;
-    FEN = await FixText(FEN);
+function CreateBoardWithFEN(FEN = '') {
+    FEN = FixText(FEN);
     let temp = FEN.split(' ');
-    debugger;
     if (temp.length < 2) {
         return false;
     }
@@ -1559,7 +1567,7 @@ async function CreateBoardWithFEN(FEN = '') {
 
 
     if (SelectedSquare !== null) {
-        await UnSelectSquare(SelectedSquare);
+        UnSelectSquare(SelectedSquare);
         SelectedSquare = null;
     }
 
@@ -1570,8 +1578,8 @@ async function CreateBoardWithFEN(FEN = '') {
     PGN = [];
     $('.LastMoveSquare').removeClass('LastMoveSquare');
 
-    await UpdatePgnBoard();
-    await ClearPieces();
+    UpdatePgnBoard();
+    ClearPieces();
 
     let number = 8;
     for (var i = 0; i < fenRows.length; i++) {
@@ -1583,7 +1591,7 @@ async function CreateBoardWithFEN(FEN = '') {
             if (isNaN(item)) {
                 let pieceId = FENPieceNames.indexOf(item);
 
-                await ChangeSquareImage(Squares[file][number], pieceId)
+                ChangeSquareImage(Squares[file][number], pieceId)
 
                 file++;
             } else {
@@ -1613,27 +1621,22 @@ async function CreateBoardWithFEN(FEN = '') {
         if (/q{1}/.test(temp[2])) {
             BlackLongCastle = true;
         }
-    } else {
-        WhiteShortCastle = true;
-        WhiteLongCastle  = true;
-        BlackLongCastle  = true;
-        BlackShortCastle = true;
     }
 
 
-    if (WhitesTurn && await IsCheck(!WhitesTurn)) {
-        await RestartGame();
+    if (WhitesTurn && IsCheck(!WhitesTurn)) {
+        RestartGame();
         return false;
     }
 
-    if (await IsCheck(WhitesTurn)) {
-        await Check(WhitesTurn);
+    if (IsCheck(WhitesTurn)) {
+        Check(WhitesTurn);
     }
-    await UpdateFENBoard();
+    UpdateFENBoard();
     return true;
 }
 
-async function FixText(Text) {
+function FixText(Text) {
     Text = Text.replace(/^\s+/, '');
     Text = Text.replace(/\s+$/, '');
     Text = Text.replaceAll(/\s+/g, ' ');
