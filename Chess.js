@@ -946,10 +946,7 @@ function CheckPinAndReturn(square, allowedSquares) {
         .removeClass('ChessSquareFull');
 
     for (var i = 0; i < allowedSquares.length; i++) {
-        if (square == Squares[4][8] && pieceId == 10 && PGN.length == 77) {
-            debugger;
-        }
-
+        
         let sqr = allowedSquares[i];
 
         let isCheck;
@@ -1274,9 +1271,7 @@ function CreateBoardWithPgn(pgnArray = [''], untilMove = null) {
                 break;
 
             case 2://(example: Qd4)
-                if (item == 'Re8') {
-                    debugger;
-                }
+                
                 pieceId = PieceNames.indexOf(item[0]);
                 if (!white) {
                     pieceId = pieceId + 6;
