@@ -496,12 +496,7 @@ function PawnAllowedSquares(square) {
     if (!IsWhite(square)) {
         unit = -1;
     }
-    if ((IsWhite(square) && number === 2) || (!IsWhite(square) && number === 7)) {
-        let sqr = Squares[file][number + 2 * unit];
-        if (!HasPiece(sqr)) {
-            allowedList.push(sqr);
-        }
-    }
+    
     for (var i = file - 1; i <= file + 1; i++) {
         if (i < 1 || i > 8) {
             continue;
@@ -510,6 +505,12 @@ function PawnAllowedSquares(square) {
         if (i == file) {
             if (!HasPiece(sqr)) {
                 allowedList.push(sqr);
+                if ((IsWhite(square) && number === 2) || (!IsWhite(square) && number === 7)) {
+                    let sqr = Squares[file][number + 2 * unit];
+                    if (!HasPiece(sqr)) {
+                        allowedList.push(sqr);
+                    }
+                }
             }
         } else {
             if (EnPassantSquare == sqr) {
