@@ -44,7 +44,10 @@ $(document).ready(function () {
     $('#PgnBoard').css('width', ('%spx', BoardWidth));
     $('.FENBoard').css('width', ('%spx', BoardWidth));
     $('#FlipBoard').click(FlipBoard);
-    $('#RestartGame').click(RestartGame);
+    $('#RestartGame').click(function () {
+        RestartGame();
+        ResetPGNCopy();
+    });
     $('#ShowPgnModal').click(ShowPgnModal);
     $('#btnInsertPgn').click(btnInsertPgnClicked);
     $("#btnCopyPgn").click(btnCopyPgnClicked);
