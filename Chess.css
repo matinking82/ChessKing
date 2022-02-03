@@ -106,3 +106,10 @@ body {
     width:90%;
     margin:auto;
 }
+
+.Controls {
+    display: block;
+    margin: auto;
+    background-color: #262626;
+    text-align:center;
+}

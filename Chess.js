@@ -19,6 +19,8 @@ const FileNames = [0, 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
 const PieceNames = [0, '', 'N', 'B', 'R', 'K', 'Q', '', 'N', 'B', 'R', 'K', 'Q']
 const FENPieceNames = [0, 'P', 'N', 'B', 'R', 'K', 'Q', 'p', 'n', 'b', 'r', 'k', 'q']
 let PGN = [];
+let PGNCopy = [];
+let PGNAt = 0;
 
 
 $(document).ready(function () {
@@ -47,6 +49,11 @@ $(document).ready(function () {
     $('#btnInsertPgn').click(btnInsertPgnClicked);
     $("#btnCopyPgn").click(btnCopyPgnClicked);
     $('#btnInsertFEN').click(btnInsertFENClicked);
+    $('.Controls').css('width', ('%spx', BoardWidth));
+    $('.Controls').css('height', ('%spx', SquareWidth * 0.8));
+    $('#btnPrevMove').click(PreviousMove);
+    $('#btnNextMove').click(NextMove);
+
     $('#txtNextMovePGN').on('keypress', function (e) {
         if (e.which === 13) {
             txtNextMovePGNEnter();
@@ -61,7 +68,7 @@ function txtNextMovePGNEnter() {
     let pgnMove = $('#txtNextMovePGN').val();
     $('#txtNextMovePGN').val('');
 
-    MoveWithPGN(pgnMove, WhitesTurn);
+    MoveWithPGN(pgnMove, WhitesTurn, true);
     UpdateFENBoard();
 }
 
@@ -158,7 +165,7 @@ function clickSquare(square) {
     } else {
         let squareToMove = SelectedSquare;
         if (square != squareToMove) {
-            let IsSuccess = MovePiece(squareToMove, square);
+            let IsSuccess = MovePiece(squareToMove, square, false, null, true, true);
             if (!IsSuccess) {
                 return;
             }
@@ -227,7 +234,7 @@ function EmptySquare(square) {
 
 }
 
-function MovePiece(startSquare, endSquare, castle = false, promote = null, UpdateFEN = true) {
+function MovePiece(startSquare, endSquare, castle = false, promote = null, UpdateFEN = true, IsManualMove = false) {
     if (HasPiece(endSquare)) {
         if (IsFriend(startSquare, endSquare)) {
             UnSelectSquare(startSquare);
@@ -368,6 +375,11 @@ function MovePiece(startSquare, endSquare, castle = false, promote = null, Updat
     if (UpdateFEN) {
         UpdateFENBoard();
     }
+
+    if (IsManualMove) {
+        ResetPGNCopy();
+    }
+
     return true;
 }
 
@@ -496,7 +508,7 @@ function PawnAllowedSquares(square) {
     if (!IsWhite(square)) {
         unit = -1;
     }
-    
+
     for (var i = file - 1; i <= file + 1; i++) {
         if (i < 1 || i > 8) {
             continue;
@@ -1237,10 +1249,12 @@ function btnInsertPgnClicked() {
 
 function CreateBoardWithPgn(pgnArray = [''], untilMove = null) {
     RestartGame();
-
     for (var i = 0; i < pgnArray.length; i++) {
         let item = pgnArray[i];
 
+        if (i == untilMove) {
+            break;
+        }
         let isSuccess = MoveWithPGN(item, (i % 2 == 0));
 
         if (!isSuccess) {
@@ -1249,7 +1263,7 @@ function CreateBoardWithPgn(pgnArray = [''], untilMove = null) {
     }
 }
 
-function MoveWithPGN(item, white) {
+function MoveWithPGN(item, white,isManual=false) {
     item = item.replace('+', '');
     item = item.replace('#', '');
     item = item.replace('x', '');
@@ -1424,7 +1438,7 @@ function MoveWithPGN(item, white) {
 
                 if (CanMove(sqr, endSquare)) {
                     startSquare = sqr;
-                    MovePiece(startSquare, endSquare, false, PieceNames.indexOf(temp[1]), false);
+                    MovePiece(startSquare, endSquare, false, PieceNames.indexOf(temp[1]), false,isManual);
                     break;
                 }
             }
@@ -1435,7 +1449,7 @@ function MoveWithPGN(item, white) {
         return false;
     }
     if (CanDo) {
-        MovePiece(startSquare, endSquare, false, null, false);
+        MovePiece(startSquare, endSquare, false, null, false,isManual);
     }
 
     return true;
@@ -1656,4 +1670,41 @@ function FixText(Text) {
     Text = Text.replaceAll(/\s+/g, ' ');
 
     return Text;
+}
+
+function PreviousMove() {
+    if (PGNCopy.length == 0) {
+        PGNCopy = PGN;
+    }
+    if (PGNAt == 0) {
+        PGNAt = PGN.length;
+    }
+
+
+    if (PGNAt == 0) {
+        return;
+    }
+    PGNAt--;
+
+    CreateBoardWithPgn(PGNCopy, PGNAt);
+}
+
+function NextMove() {
+    if (PGNCopy.length == 0) {
+        PGNCopy = PGN;
+    }
+    if (PGNAt == 0) {
+        PGNAt = PGN.length;
+    }
+    if (PGNAt + 1 > PGNCopy.length) {
+        return;
+    }
+    PGNAt++;
+
+    CreateBoardWithPgn(PGNCopy, PGNAt);
+}
+
+function ResetPGNCopy() {
+    PGNCopy = [];
+    PGNAt = 0;
 }
